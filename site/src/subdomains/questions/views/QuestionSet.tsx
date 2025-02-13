@@ -35,7 +35,7 @@ function AnswerInputsComponent({ value, onChange }: { value: AnswerInputs, onCha
           }} name={`input-answer-case-${inputIndex}`} />
           <Label htmlFor={`input-answer-case-${inputIndex}`}>case sentive</Label>
 
-          <Button variant="outline" onClick={() => {
+          <Button aria-label="remove" variant="outline" onClick={() => {
             value.CorrectAnswers.splice(inputIndex, 1)
             onChange(value)
           }} >
@@ -46,7 +46,7 @@ function AnswerInputsComponent({ value, onChange }: { value: AnswerInputs, onCha
     </ul>
     <br />
     <div className="w-full flex flex-col items-end">
-      <Button variant="outline" onClick={() => {
+      <Button aria-label="add" variant="outline" onClick={() => {
         value.CorrectAnswers.push(new AnswerInput(new AnswerMessage(""), false))
         onChange(value)
       }}>
@@ -76,7 +76,7 @@ function AnswerOptionsComponent({ value, onChange }: { value: AnswerOptions, onC
               value.Answers[optionIndex].Value = e.target.value;
               onChange(value)
             }} />
-            <Button variant="outline" onClick={() => {
+            <Button aria-label="remove" variant="outline" onClick={() => {
               value.Answers.splice(optionIndex, 1)
               onChange(value)
             }} >
@@ -88,7 +88,7 @@ function AnswerOptionsComponent({ value, onChange }: { value: AnswerOptions, onC
     </ul>
     <br />
     <div className="w-full flex flex-col items-end">
-      <Button variant="outline" onClick={() => {
+      <Button aria-label="add" variant="outline" onClick={() => {
         value.Answers.push(new AnswerMessage(""))
         onChange(value)
       }}>
@@ -195,7 +195,7 @@ export const QuestionSet = () => {
           <h2 className="text-6xl text-center">404</h2>
           <h1 className="text-3xl text-center">Not found</h1>
           <div className="w-full">
-            <Button asChild variant="link">
+            <Button aria-label="return to searching link" asChild variant="link">
               <Link to="/question-set/search">return to searching</Link>
             </Button>
           </div>
@@ -206,7 +206,7 @@ export const QuestionSet = () => {
         {!loading && questionSet && owns && <>
           {/* toggler */}
           <div className="flex flex-row w-full justify-between">
-            <Button variant="destructive" onClick={() => {
+            <Button aria-label="delete question set" variant="destructive" onClick={() => {
               DeleteQuestionSet({
                 Session: session,
                 Id: id!
@@ -271,7 +271,7 @@ export const QuestionSet = () => {
                 questionSet.Name.Value = e.target.value
                 setQuestionSet({ ...questionSet })
               }} />
-              <Button variant="outline" disabled={questionSet.Name.Valid().length != 0}
+              <Button aria-label="change question set name" variant="outline" disabled={questionSet.Name.Valid().length != 0}
                 onClick={async () => {
                   const res = await ChangeQuestionSetName({
                     Session: session,
@@ -294,7 +294,7 @@ export const QuestionSet = () => {
                 questionSet.Description.Value = e.target.value
                 setQuestionSet({ ...questionSet })
               }} />
-              <Button variant="outline" disabled={questionSet.Name.Valid().length != 0}
+              <Button aria-label="Change question set description" variant="outline" disabled={questionSet.Name.Valid().length != 0}
                 onClick={async () => {
                   const res = await ChangeQuestionSetDescription({
                     Session: session,
@@ -314,7 +314,7 @@ export const QuestionSet = () => {
             {questionSet.Questions.map((question, questionIndex) => <li key={questionIndex} className="border p-2 rounded-sm">
               <div className="flex flex-row justify-between">
                 <h2 className="text-xl">{questionIndex + 1}</h2>
-                <Button variant="destructive" onClick={async () => {
+                <Button aria-label="remove question" variant="destructive" onClick={async () => {
                   const res = await DeleteQuestion({
                     Session: session,
                     Id: question.Id,
@@ -334,7 +334,7 @@ export const QuestionSet = () => {
                     questionSet.Questions[questionIndex].Question.Value = e.target.value
                     setQuestionSet({ ...questionSet })
                   }} />
-                  <Button variant="secondary" disabled={questionSet.Name.Valid().length != 0}
+                  <Button aria-label="change question question" variant="secondary" disabled={questionSet.Name.Valid().length != 0}
                     onClick={async () => {
                       const res = await ChangeQuestion({
                         Session: session,
@@ -358,7 +358,7 @@ export const QuestionSet = () => {
                 }} />
                 <br />
                 <div className="w-full flex flex-col items-end">
-                  <Button variant="secondary" disabled={question.Answer.Valid().length != 0}
+                  <Button aria-label="save" variant="secondary" disabled={question.Answer.Valid().length != 0}
                     onClick={async () => { // @ts-ignore
                       const res = await ChangeQuestionAnswer({
                         Session: session,
@@ -393,7 +393,7 @@ export const QuestionSet = () => {
                 setNewQuestion({ ...newQuestion })
               }} />
             </ShowVoErrors>
-            <Button variant="secondary" disabled={[...newQuestion.Question.Valid(), ...newQuestion.Answer.Valid()].length != 0} onClick={() => {
+            <Button aria-label="create question" variant="secondary" disabled={[...newQuestion.Question.Valid(), ...newQuestion.Answer.Valid()].length != 0} onClick={() => {
               CreateQuestion({
                 Session: session,
                 ...newQuestion

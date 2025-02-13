@@ -81,7 +81,7 @@ export function MyQuestionSets() {
             }} />
           </ShowVoErrors>
 
-          <Button variant="secondary" onClick={() => {
+          <Button aria-label="create question set" variant="secondary" onClick={() => {
             CreateQuestionSet({ ...newSet, Session: session, }, api).then(res => {
               if (!res.Ok) return
               const userSession = session.Session()!
@@ -123,7 +123,7 @@ export function MyQuestionSets() {
               <p>{set.Description.Value}</p>
             </Link>
             <div className="flex flex-col items-end">
-              <Button variant="destructive" onClick={() => {
+              <Button aria-label="delete question set" variant="destructive" onClick={() => {
                 DeleteQuestionSet({
                   Session: session,
                   Id: set.Id

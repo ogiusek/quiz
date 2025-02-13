@@ -58,7 +58,7 @@ export const QuestionSetPicker = ({ onChoose: choose }: { onChoose: (_: Question
           setPage(0)
         }}>
           <Input value={search} placeholder="search" onChange={e => setSearch(e.target.value)} />
-          <Button variant="ghost" type="submit">
+          <Button aria-label="search" variant="ghost" type="submit">
             <SearchIcon />
           </Button>
         </form>
@@ -68,7 +68,7 @@ export const QuestionSetPicker = ({ onChoose: choose }: { onChoose: (_: Question
             <h2 className="text-2xl">No quiz found create new</h2>
           </>}
           {sets.map((set) => <li key={set.Id} className="border p-2 rounded-md">
-            <button className="w-full h-full" onClick={() => choose(set)}>
+            <button aria-label="choose" className="w-full h-full" onClick={() => choose(set)}>
               <div className="w-full flex flex-row justify-between">
                 <h3 className="text-2xl">{set.Name.Value}</h3>
                 <UserAvatar user={set.Owner} />

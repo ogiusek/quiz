@@ -46,7 +46,7 @@ export const PreviewQuestionSet = ({ id }: { id: string }) => {
           <h2 className="text-6xl text-center">404</h2>
           <h1 className="text-3xl text-center">Not found</h1>
           <div className="w-full">
-            <Button asChild variant="link">
+            <Button aria-label="link to search" asChild variant="link">
               <Link to="/question-set/search">return to searching</Link>
             </Button>
           </div>

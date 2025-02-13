@@ -52,12 +52,13 @@ export const Nav = () => {
 
   return <>
     <Button
+      aria-label="menu"
       variant="ghost"
       onClick={() => setShow(true)}
       className={`fixed top-4 transition right-4 ${!show ? "z-40" : "opacity-0 translate-x-full"}`}>
       <MenuIcon />
     </Button>
-    <button className={`
+    <button aria-label="background" className={`
       fixed top-0 left-0
       w-screen h-screen
       opacity-30 bg-black
@@ -74,6 +75,7 @@ export const Nav = () => {
           {!!session && <>
             <SessionAvatar session={session.Session()!} />
             <Button
+              aria-label="log out"
               variant="destructive"
               onClick={sessionContext.UnSetSession}>
               <LogOut />
@@ -81,6 +83,7 @@ export const Nav = () => {
           </>}
         </div>
         <Button
+          aria-label="exit"
           variant="ghost"
           onClick={() => setShow(false)}>
           <X />
@@ -91,7 +94,7 @@ export const Nav = () => {
         <h3 className="text-2xl">{section}</h3>
         <ul>
           {links.map((link, i) => <li key={i} className="w-full">
-            <Button variant="link" asChild className="w-full">
+            <Button aria-label="link" variant="link" asChild className="w-full">
               <Link to={link.url}>{link.message}</Link>
             </Button>
           </li>)}

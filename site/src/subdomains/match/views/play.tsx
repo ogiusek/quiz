@@ -17,7 +17,7 @@ const RenderOptionsAnswer = ({ answer, onAnswer }: { answer: AnswerOptions, onAn
   return <>
     <ul className="w-full h-full flex flex-row gap-2 flex-wrap">
       {answer.Answers.map((answer, i) => <li key={i} className=" w-2/5 flex-grow">
-        <Button className="w-full h-full" variant="outline" onClick={() => onAnswer(answer.Value)}>{answer.Value}</Button>
+        <Button aria-label="answer" className="w-full h-full" variant="outline" onClick={() => onAnswer(answer.Value)}>{answer.Value}</Button>
       </li>)}
     </ul>
   </>
@@ -31,7 +31,7 @@ const RenderInputsAnswer = ({ onAnswer }: { answer: AnswerInputs, onAnswer: (_: 
       val && onAnswer(val)
     }}>
       <Input placeholder="answer" value={val} onChange={e => setVal(e.target.value)} />
-      <Button type="submit" disabled={!val}>
+      <Button aria-label="send" type="submit" disabled={!val}>
         <Send />
       </Button>
     </form>
@@ -97,7 +97,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
 
         <div className={`transition fixed top-0 right-0 w-full max-w-sm h-full z-20 p-2 bg-card rounded-l-md border ${showPlayers ? '' : 'translate-x-full'}`}>
           <div className="w-full flex flex-row justify-start">
-            <Button variant="destructive" onClick={() => setShowPlayers(false)}>
+            <Button aria-label="exit" variant="destructive" onClick={() => setShowPlayers(false)}>
               <X />
             </Button>
           </div>
@@ -116,10 +116,10 @@ export const Play = ({ match }: { match: MatchDto }) => {
         </div>
 
         <div className="flex flex-row justify-between">
-          <Button variant="outline" onClick={() => setShowPlayers(!showPlayers)}>
+          <Button aria-label="players" variant="outline" onClick={() => setShowPlayers(!showPlayers)}>
             <Contact />
           </Button>
-          <Button variant="destructive" disabled={match.State != 'prepare'} onClick={() => {
+          <Button aria-label="log out" variant="destructive" disabled={match.State != 'prepare'} onClick={() => {
             wsContext.SendMessage({ topic: "match/quit", payload: {} })
           }}>
             <LogOut />
@@ -129,7 +129,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
         {(match.State == "prepare" || match.Course?.Step == 'finished') && <>
           <div className="flex flex-row gap-2">
             <Input value={link} onChange={() => { }} disabled />
-            <Button onClick={async () => {
+            <Button aria-label="copy" onClick={async () => {
               try {
                 await navigator.clipboard.writeText(link);
                 notiesContext.AddNoty({ Type: "success", Message: "copied!" })
@@ -146,10 +146,11 @@ export const Play = ({ match }: { match: MatchDto }) => {
           {match.HostUserId == userId ? <>
             {/* admin */}
             <div className="w-full flex flex-row gap-2">
-              <Button variant="outline" className="grow" onClick={() => setChoosingQuestionSet(true)}>
+              <Button aria-label="change question set" variant="outline" className="grow" onClick={() => setChoosingQuestionSet(true)}>
                 Change question set
               </Button>
               <Button
+                aria-label="preview"
                 variant="outline"
                 disabled={!match.QuestionSetId}
                 onClick={() => setPreviewingQuestionSet(true)}>
@@ -158,6 +159,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
             </div>
             {choosingQuestionSet && <>
               <Button
+                aria-label="exit"
                 className="fixed top-5 left-5 z-20"
                 variant="destructive"
                 onClick={() => setChoosingQuestionSet(false)}>
@@ -171,6 +173,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
 
             {previewingQuesitonSet && <>
               <Button
+                aria-label="exit"
                 className="fixed top-5 left-5 z-20"
                 variant="destructive"
                 onClick={() => setPreviewingQuestionSet(false)}>
@@ -193,12 +196,12 @@ export const Play = ({ match }: { match: MatchDto }) => {
               }} onBlur={() => {
                 wsContext.SendMessage({ topic: "match/change-questions-amount", payload: { questions_amount: questionsAmount } })
               }} />
-              <Button variant={questionsAmount != match.QuestionsAmount ? "default" : "ghost"} type="submit">
+              <Button aria-label="save" variant={questionsAmount != match.QuestionsAmount ? "default" : "ghost"} type="submit">
                 <Save />
               </Button>
             </form>
 
-            <Button variant="default" onClick={() => wsContext.SendMessage({ topic: "match/start", payload: {} })}>
+            <Button aria-label="start game" variant="default" onClick={() => wsContext.SendMessage({ topic: "match/start", payload: {} })}>
               Start game
             </Button>
           </> : <>
