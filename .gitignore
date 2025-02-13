@@ -1,3 +1,4 @@
 settings.json
 
 *.ignore.*
+env.json
