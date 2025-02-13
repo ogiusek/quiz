@@ -5,7 +5,7 @@ import { QuestionSet } from "../models"
 import { SearchQuestionSets } from "../services/api"
 import { useBottomScrollListener } from "react-bottom-scroll-listener"
 import { Link } from "react-router-dom"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Loader2, SearchIcon } from "lucide-react"
@@ -74,10 +74,7 @@ export function Search() {
             <Link to={`/question-set/get/${set.Id}`}>
               <div className="w-full flex flex-row justify-between">
                 <h3 className="text-2xl">{set.Name.Value}</h3>
-                <Avatar className="border flex items-center justify-center">
-                  <AvatarImage src={set.Owner.Image} />
-                  <AvatarFallback>{set.Owner.UserName.Value.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <UserAvatar user={set.Owner} />
               </div>
               <p>{set.Description.Value}</p>
             </Link>

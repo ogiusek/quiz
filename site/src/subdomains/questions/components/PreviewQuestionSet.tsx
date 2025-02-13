@@ -4,7 +4,7 @@ import { CaseSensitive, Loader2 } from "lucide-react";
 import { GetQuestionSet, GetQuestionSetArgs } from "../services/api";
 import { ApiContext } from "@/common/api/apiContext";
 import { SessionContext } from "@/subdomains/users/contexts/sessionContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -61,10 +61,7 @@ export const PreviewQuestionSet = ({ id }: { id: string }) => {
 
           <div className="w-full flex flex-col justify-center items-center">
             <p className="self-start">created by</p>
-            <Avatar className="border flex items-center justify-center scale-150">
-              <AvatarImage src={questionSet.Owner.Image} />
-              <AvatarFallback>{questionSet.Owner.UserName.Value.slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
+            <UserAvatar user={questionSet.Owner} />
           </div>
 
           <ul className="list-decimal flex flex-col gap-6">

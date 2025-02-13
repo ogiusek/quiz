@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { NotiesContext } from "@/common/noties/notiesContext"
 import QRCode from "react-qr-code"
 import { PreviewQuestionSet } from "@/subdomains/questions/components/PreviewQuestionSet"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/avatar"
 import { AnswerInputs, AnswerOptions, AnswerType } from "@/subdomains/questions/valueobjects"
 import { LeaderboardContext } from "../contexts/leaderboard"
 
@@ -108,10 +108,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
               <p>active</p>
             </li>
             {match.Players.map(player => <li key={player.Id} className="flex flex-row justify-between">
-              <Avatar className="border flex items-center justify-center">
-                <AvatarImage src={player.User.Image} />
-                <AvatarFallback>{player.User.UserName.Value.slice(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
+              <UserAvatar user={player.User} />
               <p>{player.Score}</p>
               {player.Online ? <Power /> : <PowerOff />}
             </li>)}
@@ -257,10 +254,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
                 <p>active</p>
               </li>
               {sortedPlayers.map(player => <li key={player.Id} className="flex flex-row justify-between">
-                <Avatar className="border flex items-center justify-center">
-                  <AvatarImage src={player.User.Image} />
-                  <AvatarFallback>{player.User.UserName.Value.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <UserAvatar user={player.User} />
                 <p>{player.Score}</p>
                 {player.Online ? <Power /> : <PowerOff />}
               </li>)}

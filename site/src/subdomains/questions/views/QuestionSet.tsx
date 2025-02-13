@@ -8,8 +8,7 @@ import { ChangeQuestion, ChangeQuestionAnswer, ChangeQuestionSetDescription, Cha
 import { CaseSensitive, Loader2, Plus, Save, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
-import { Avatar } from "@/components/ui/avatar";
-import { AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { UserAvatar } from "@/components/ui/avatar";
 import { ShowVoErrors } from "@/components/ui/errors";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -234,10 +233,7 @@ export const QuestionSet = () => {
 
           <div className="w-full flex flex-col justify-center items-center">
             <p className="self-start">created by</p>
-            <Avatar className="border flex items-center justify-center scale-150">
-              <AvatarImage src={questionSet.Owner.Image} />
-              <AvatarFallback>{questionSet.Owner.UserName.Value.slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
+            <UserAvatar user={questionSet.Owner} />
           </div>
 
           <ul className="flex flex-col gap-6">

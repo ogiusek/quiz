@@ -1,6 +1,6 @@
 import React, { createContext, useState } from "react";
 import { MatchDto } from "../models";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
@@ -41,11 +41,7 @@ export const LeaderboardSerivce: React.FC<{ children: React.ReactNode }> = ({ ch
                   <p>score</p>
                 </li>
                 {sortedPlayers?.map((player, i) => <li key={player.Id} className="flex flex-row justify-between">
-
-                  <Avatar className="border flex items-center justify-center">
-                    <AvatarImage src={player.User.Image} />
-                    <AvatarFallback>{player.User.UserName.Value.slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar user={player.User} />
                   <p>{i + 1}</p>
                   <p>{player.Score}</p>
                 </li>)}
