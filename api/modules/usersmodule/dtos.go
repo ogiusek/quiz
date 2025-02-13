@@ -79,7 +79,7 @@ func (session *SessionDto) Encode(c common.Ioc) string {
 	claims["user_image"] = string(session.UserImage)
 	var clock timemodule.Clock
 	c.Inject(&clock)
-	return jwtConfig.EncodeJwt(clock.Now(), claims, userConfig.SessionTokenExpirationTime)
+	return jwtConfig.EncodeJwt(clock.Now(), claims, userConfig.SessionTokenExpirationTime.Duration())
 }
 
 // refresh dto
@@ -133,7 +133,7 @@ func (refreshDto *RefreshDto) Encode(c common.Ioc) string {
 	claims["session_hash"] = string(refreshDto.SessionHash)
 	var clock timemodule.Clock
 	c.Inject(&clock)
-	return jwtConfig.EncodeJwt(clock.Now(), claims, userConfig.RefreshTokenExpirationTime)
+	return jwtConfig.EncodeJwt(clock.Now(), claims, userConfig.RefreshTokenExpirationTime.Duration())
 }
 
 // user model dto

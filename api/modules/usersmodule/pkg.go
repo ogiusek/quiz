@@ -3,7 +3,6 @@ package usersmodule
 import (
 	"quizapi/common"
 	"quizapi/modules/wsmodule"
-	"time"
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
@@ -24,12 +23,6 @@ func (Package) Services(c *ioc.Container) {
 
 	// session
 	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return common.NewServiceStorage[SessionDto](), nil }, (*common.ServiceStorage[SessionDto])(nil), ioc.PerScope)
-	c.MustRegister(func(f ioc.Factory) (interface{}, error) {
-		return UserConfig{
-			SessionTokenExpirationTime: time.Minute * 5, // * 1024 * 1024, // (TODO DEVELOPMENT) remove comment when developing api and add it when finished
-			RefreshTokenExpirationTime: time.Hour * 24 * 365,
-		}, nil
-	}, (*UserConfig)(nil), ioc.PerContainer)
 }
 
 func (Package) Variables(c common.Ioc) {

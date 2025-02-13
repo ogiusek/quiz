@@ -1,8 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"log"
+	"os"
 	"quizapi/common"
+	"strings"
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
@@ -11,6 +15,34 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+func GetValidConfig() MainConfig {
+	configPath := flag.String("config", "./config.json", "Path to the configuration file")
+	flag.Parse()
+	configData := *configPath
+
+	file, err := os.Open(configData)
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	defer file.Close()
+
+	var config MainConfig
+	jsonParser := json.NewDecoder(file)
+	if err := jsonParser.Decode(&config); err != nil {
+		log.Panic(err.Error())
+	}
+
+	if errors := config.Valid(); len(errors) != 0 {
+		var messages []string
+		for _, err := range errors {
+			messages = append(messages, err.Error())
+		}
+		log.Panicf("errors:\n```\n%s\n```", strings.Join(messages, "\n"))
+	}
+
+	return config
+}
 
 func main() {
 	dsn := "host=localhost port=5432 user=username password=password dbname=database"
@@ -25,6 +57,11 @@ func main() {
 	}
 
 	c := ioc.NewContainer()
+	{
+		config := GetValidConfig()
+		c.MustRegister(func(f ioc.Factory) (interface{}, error) { return config, nil }, (*MainConfig)(nil), ioc.PerContainer)
+	}
+
 	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return db, nil }, (*gorm.DB)(nil), ioc.PerContainer)
 	for _, pkg := range packages {
 		pkg.Services(c)

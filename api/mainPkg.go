@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"quizapi/common"
+	"quizapi/modules/usersmodule"
 	"quizapi/modules/wsmodule"
 
 	"github.com/fasthttp/router"
@@ -10,6 +12,22 @@ import (
 	"github.com/valyala/fasthttp"
 	"gorm.io/gorm"
 )
+
+type MainConfig struct {
+	JwtSecret   string                 `json:"jwt_secret"`
+	UsersConfig usersmodule.UserConfig `json:"user_config"`
+}
+
+func (c *MainConfig) Valid() []error {
+	var errs []error
+	if c.JwtSecret == "" {
+		errs = append(errs, common.ErrPath(errors.New("missing jwt secret")).Property("jwt_secret"))
+	}
+	for _, err := range c.UsersConfig.Valid() {
+		errs = append(errs, common.ErrPath(err).Property("user_config"))
+	}
+	return errs
+}
 
 type MainPackage struct{}
 
@@ -33,10 +51,12 @@ func (MainPackage) Services(c *ioc.Container) {
 
 	// application services
 	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return common.NewHasher(), nil }, (*common.Hasher)(nil), ioc.PerContainer)
-	c.MustRegister(func(f ioc.Factory) (interface{}, error) {
-		return common.NewJwtConfig("npVLKFqcrHOHbwfk84YNmohGNP9vdZtQ"), nil
-	}, (*common.JwtConfig)(nil), ioc.PerContainer)
 
+	var mainConfig MainConfig
+	c.MustResolve(&mainConfig)
+
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return common.NewJwtConfig(mainConfig.JwtSecret), nil }, (*common.JwtConfig)(nil), ioc.PerContainer)
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return mainConfig.UsersConfig, nil }, (*usersmodule.UserConfig)(nil), ioc.PerContainer)
 }
 
 func (MainPackage) Variables(c common.Ioc) {

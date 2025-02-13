@@ -22,7 +22,7 @@ type JwtConfig struct {
 
 func NewJwtConfig(secret string) JwtConfig {
 	return JwtConfig{
-		Secret:     []byte(secret),
+		Secret:     []byte(secret), // example secret "npVLKFqcrHOHbwfk84YNmohGNP9vdZtQ"
 		SignMethod: jwt.SigningMethodHS256,
 	}
 }

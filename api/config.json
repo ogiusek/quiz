@@ -1,0 +1,7 @@
+{
+  "jwt_secret": "npVLKFqcrHOHbwfk84YNmohGNP9vdZtQ",
+  "user_config": {
+    "session_token_expiration_time": "5m0s",
+    "refresh_token_expiration_time": "8760h0m0s"
+  }
+}
