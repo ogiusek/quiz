@@ -37,7 +37,7 @@ func (e *Env) Valid() []error {
 	}
 
 	if !found {
-		errs = append(errs, fmt.Errorf("env has to be one of these: %s", strings.Join(Envs, "")))
+		errs = append(errs, fmt.Errorf("env has to be one of these: %s", strings.Join(Envs, ", ")))
 	}
 
 	return errs
