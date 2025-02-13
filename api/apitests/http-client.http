@@ -1,0 +1,149 @@
+@sessionToken = {{tokens.response.body.$.session_token}}
+@refreshToken = {{tokens.response.body.$.refresh_token}}
+@authorization = Authorization: {{sessionToken}}
+
+###
+POST {{api}}/api/user/register
+
+{
+  "name": "{{user_name}}",
+  "password": "{{user_password}}"
+}
+
+###
+# @name tokens
+POST {{api}}/api/user/log-in
+
+{
+  "login": "{{user_name}}",
+  "password": "{{user_password}}"
+}
+
+###
+# @name tokens
+POST {{api}}/api/user/refresh
+
+{
+  "session_token": "{{sessionToken}}",
+  "refresh_token": "{{refreshToken}}"
+}
+
+###
+POST {{api}}/api/user/change-name
+{{authorization}}
+
+{ "new_name": "{{user_name}}" }
+
+###
+POST {{api}}/api/user/change-profile-picture
+{{authorization}}
+
+###
+POST {{api}}/api/user/change-password
+{{authorization}}
+
+{ "new_password": "{{user_password}}" }
+
+###
+GET {{api}}/api/user/profile
+{{authorization}}
+
+###
+POST {{api}}/api/question-set/create
+{{authorization}}
+
+{
+  "name": "minecraft outer worlds",
+  "description": "do you know everything about minecraft ?"
+}
+
+###
+POST {{api}}/api/question-set/change-name
+{{authorization}}
+
+{
+  "id": "4521d3a6-8b62-409e-8883-278dfe917702",
+  "new_name": "minecraft secrets"
+}
+
+###
+POST {{api}}/api/question-set/change-description
+{{authorization}}
+
+{
+  "id": "3cf87671-289d-4f15-b212-ac0b4bcfcbd2",
+  "new_description": "are you sure you know everything about minecraft ?"
+}
+
+###
+GET {{api}}/api/question-set/search?args={"owner_id":"12b6b661-b24b-401e-bc6d-9ac326262b4f"}
+{{authorization}}
+
+###
+GET {{api}}/api/question-set/search
+{{authorization}}
+
+###
+GET {{api}}/api/question-set/search?args={"last_update":"2025-02-09T20:09:35Z"}
+
+###
+GET {{api}}/api/question-set/get?args={"id":"3cf87671-289d-4f15-b212-ac0b4bcfcbd2"}
+{{authorization}}
+
+###
+DELETE {{api}}/api/question-set/delete
+{{authorization}}
+
+{
+  "id": "4521d3a6-8b62-409e-8883-278dfe917702"
+}
+
+###
+POST {{api}}/api/question/create
+{{authorization}}
+
+{
+  "question_set_id": "4521d3a6-8b62-409e-8883-278dfe917702",
+  "question": "when minecraft came out",
+  "answer_type": "o",
+  "answer": {
+    "correct_answer": "1980",
+    "answers": [
+      "1990",
+      "2000"
+    ]
+  }
+}
+
+###
+POST {{api}}/api/question/change-question
+{{authorization}}
+
+{
+  "id": "4a357a84-69bb-4635-9a39-bc7ff8dde278",
+  "new_question": "never mind fuck this question"
+}
+
+###
+POST {{api}}/api/question/change-answer
+{{authorization}}
+
+{
+  "id": "4a357a84-69bb-4635-9a39-bc7ff8dde278",
+  "new_answer_type": "i",
+  "new_answer": {
+    "correct_answers": [
+      {
+        "answer": "agree"
+      }
+    ]
+  }
+}
+
+###
+DELETE {{api}}/api/question/delete
+{{authorization}}
+
+{
+  "id": "4a357a84-69bb-4635-9a39-bc7ff8dde278"
+}

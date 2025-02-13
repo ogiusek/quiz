@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body style="background-color: black;">
+  <script>
+    let api = "localhost:5050"
+    let ws;
+
+    /**
+     * @param {string} login
+     * @param {string} password
+     * @returns {Promise<string>}
+     */
+    async function Login(login, password) {
+      console.log("log in incoming")
+      const response = await fetch(`http://${api}/api/user/log-in`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "login": login,
+          "password": password
+        })
+      })
+
+      const result = await response.json();
+      return result["session_token"]
+    }
+
+    /**
+     * @param {string} sessionToken
+     */
+    function Connect(sessionToken) {
+      console.log('connect incoming');
+      ws = new WebSocket(`ws://${api}/ws?authorization=${sessionToken}`);
+
+      ws.onopen = () => console.log('connected');
+      ws.onmessage = (m) => console.log(m.data);
+      ws.onclose = () => console.log("closed connection")
+    }
+
+    /**
+     * @param {string} login
+     * @param {string} password
+     * @returns {Promise<void>}
+     */
+    function LoginAndConnect(login, password) {
+      return Login(login, password).then((token) => Connect(token))
+    }
+
+    function Host() {
+      ws.send(JSON.stringify({
+        topic: "match/host",
+        payload: {}
+      }))
+    }
+
+    function Join(matchId) {
+      ws.send(JSON.stringify({
+        topic: "match/join",
+        payload: {
+          match_id: matchId
+        }
+      }))
+    }
+
+    function Quit() {
+      ws.send(JSON.stringify({
+        topic: "match/quit",
+        payload: {}
+      }))
+    }
+
+    /**
+     * @param {string} setId
+     */
+    function ChangeQuestionSet(setId) {
+      ws.send(JSON.stringify({
+        topic: "match/change-question-set",
+        payload: {
+          "question_set_id": setId
+        }
+      }))
+    }
+
+    /**
+     * @param {Number} amount 
+     */
+    function ChangeQuestionsAmount(amount) {
+      ws.send(JSON.stringify({
+        topic: "match/change-questions-amount",
+        payload: {
+          "questions_amount": amount
+        }
+      }))
+    }
+
+    function Start() {
+      ws.send(JSON.stringify({
+        topic: "match/start",
+        payload: {}
+      }))
+    }
+
+    /**
+     * @param {string} answer
+    */
+    function Answer(answer) {
+      ws.send(JSON.stringify({
+        topic: "match/answer",
+        payload: {
+          "answer": answer
+        }
+      }))
+    }
+
+    // host();
+    // changeQuestionSet("3cf87671-289d-4f15-b212-ac0b4bcfcbd2");
+    // changeQuestionsAmount(5);
+    // start();
+  </script>
+</body>
+
+</html>

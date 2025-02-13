@@ -1,0 +1,5 @@
+{
+  "login": "abcd",
+  "password": "P@$$W0rd",
+  "command": "ab -n 10000 -c 1000 -p loginPayload.json -T application/json http://localhost:5050/api/user/log-in"
+}
