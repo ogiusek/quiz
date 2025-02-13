@@ -74,7 +74,7 @@ func main() {
 		pkg.Endpoints(r, ioc)
 	}
 
-	logger.Printf("starting server on :%d", config.Port)
+	log.Printf("starting server on :%d", config.Port)
 	if err := fasthttp.ListenAndServe(fmt.Sprintf(":%d", config.Port), func(ctx *fasthttp.RequestCtx) {
 		// CORS
 		ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
