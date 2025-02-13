@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SessionAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SessionContext } from "@/subdomains/users/contexts/sessionContext";
 import { LogOut, MenuIcon, X } from "lucide-react";
@@ -72,10 +72,7 @@ export const Nav = () => {
       <div className="flex flex-row justify-between gap-2 w-full">
         <div className="flex flex-row gap-2">
           {!!session && <>
-            <Avatar className="border flex items-center justify-center">
-              <AvatarImage src={session.Session()!.UserImage} />
-              <AvatarFallback>{session.Session()!.UserName.slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
+            <SessionAvatar session={session.Session()!} />
             <Button
               variant="destructive"
               onClick={sessionContext.UnSetSession}>

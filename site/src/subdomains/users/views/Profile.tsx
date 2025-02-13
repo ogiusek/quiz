@@ -3,8 +3,7 @@ import { useContext, useState } from "react"
 import { SessionContext } from "../contexts/sessionContext"
 import { NotiesContext } from "@/common/noties/notiesContext"
 import { Button } from "@/components/ui/button"
-import { Avatar } from "@/components/ui/avatar"
-import { AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
+import { SessionAvatar } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Edit, LogOutIcon } from "lucide-react"
@@ -19,10 +18,10 @@ export function Profile() {
   const noties = useContext(NotiesContext)
 
   const session = sessionContext.GetSession()
-  const user = session?.Session()
-  if (!user) return <></>
+  const sessionData = session?.Session()
+  if (!sessionData) return <></>
 
-  const [name, setName] = useState(new Name(user.UserName))
+  const [name, setName] = useState(new Name(sessionData.UserName))
   const [password, setPassword] = useState(new Password(''))
   const [repeatPassword, setRepeatPassword] = useState(new Password(''))
   const repeatPasswordErrors = [new Error('passwords must match')]
@@ -56,8 +55,6 @@ export function Profile() {
 
   const LogOut = sessionContext.UnSetSession
 
-  const initials = user.UserName.slice(0, 2).toUpperCase()
-
   return <>
     <Nav />
     <main className="flex justify-center items-center min-h-screen">
@@ -69,10 +66,7 @@ export function Profile() {
         </div>
 
         <div className="w-full flex justify-center items-center">
-          <Avatar className="border flex items-center justify-center scale-150">
-            <AvatarImage src={user.UserImage} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <SessionAvatar session={sessionData} />
         </div>
 
         <ShowVoErrors vo={name}>

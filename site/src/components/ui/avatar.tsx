@@ -2,6 +2,8 @@ import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@/lib/utils"
+import { User } from "@/subdomains/users/models/user"
+import { SessionUserData } from "@/subdomains/users/models/session"
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -46,3 +48,19 @@ const AvatarFallback = React.forwardRef<
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
 export { Avatar, AvatarImage, AvatarFallback }
+
+export const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
+  const initials = user.UserName.Value.slice(0, 2).toUpperCase()
+  return <Avatar className="border flex items-center justify-center">
+    <AvatarImage src={user.Image} />
+    <AvatarFallback>{initials}</AvatarFallback>
+  </Avatar>
+}
+
+export const SessionAvatar: React.FC<{ session: SessionUserData }> = ({ session: user }) => {
+  const initials = user.UserName.slice(0, 2).toUpperCase()
+  return <Avatar className="border flex items-center justify-center">
+    <AvatarImage src={user.UserImage} />
+    <AvatarFallback>{initials}</AvatarFallback>
+  </Avatar>
+}

@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 // i only made that a separate directory is because of not being able to clasify this
 // and i'm having dilema should models in other sub-domains be a file or a directory
 
-type SessionUserData = {
+export type SessionUserData = {
   UserId: string
   UserName: string
   UserImage: string
