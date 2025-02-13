@@ -1,65 +1,63 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
+	"fmt"
 	"log"
 	"os"
 	"quizapi/common"
-	"strings"
+	"quizapi/modules/usersmodule"
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
 	"github.com/valyala/fasthttp"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormLogger "gorm.io/gorm/logger"
 )
 
-func GetValidConfig() MainConfig {
-	configPath := flag.String("config", "./config.json", "Path to the configuration file")
-	flag.Parse()
-	configData := *configPath
-
-	file, err := os.Open(configData)
-	if err != nil {
-		log.Panic(err.Error())
-	}
-	defer file.Close()
-
-	var config MainConfig
-	jsonParser := json.NewDecoder(file)
-	if err := jsonParser.Decode(&config); err != nil {
-		log.Panic(err.Error())
-	}
-
-	if errors := config.Valid(); len(errors) != 0 {
-		var messages []string
-		for _, err := range errors {
-			messages = append(messages, err.Error())
-		}
-		log.Panicf("errors:\n```\n%s\n```", strings.Join(messages, "\n"))
-	}
-
-	return config
-}
-
 func main() {
+	c := ioc.NewContainer()
+
+	// config
+
+	config := GetValidConfig()
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return config, nil }, (*MainConfig)(nil), ioc.PerContainer)
+
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return common.NewJwtConfig(config.JwtSecret), nil }, (*common.JwtConfig)(nil), ioc.PerContainer)
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return config.UsersConfig, nil }, (*usersmodule.UserConfig)(nil), ioc.PerContainer)
+
+	// log create logger
+
+	logger := log.New(os.Stdout, "\r\n", log.LstdFlags)
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return logger, nil }, (*log.Logger)(nil), ioc.PerContainer)
+
+	// config database with its logger
+
+	var GormLogger gormLogger.Interface
+
+	if config.Env == DevEnv {
+		GormLogger = gormLogger.New(
+			logger,
+			gormLogger.Config{LogLevel: gormLogger.Info, Colorful: true},
+		)
+	}
+
+	if config.Env == DeployEnv {
+		GormLogger = gormLogger.Discard
+	}
+
 	dsn := "host=localhost port=5432 user=username password=password dbname=database"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Discard,
+		Logger: GormLogger,
 	})
 	if err != nil {
 		log.Panic(err.Error())
 	}
+
+	// load packages
+
 	for _, pkg := range packages {
 		pkg.Db(db)
-	}
-
-	c := ioc.NewContainer()
-	{
-		config := GetValidConfig()
-		c.MustRegister(func(f ioc.Factory) (interface{}, error) { return config, nil }, (*MainConfig)(nil), ioc.PerContainer)
 	}
 
 	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return db, nil }, (*gorm.DB)(nil), ioc.PerContainer)
@@ -77,15 +75,15 @@ func main() {
 		pkg.Endpoints(r, ioc)
 	}
 
-	log.Print("started server")
-	if err := fasthttp.ListenAndServe(":5050", func(ctx *fasthttp.RequestCtx) {
+	logger.Printf("starting server on :%d", config.Port)
+	if err := fasthttp.ListenAndServe(fmt.Sprintf(":%d", config.Port), func(ctx *fasthttp.RequestCtx) { // CORS
 		ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
 		ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
 		ctx.Response.Header.Set("Access-Control-Allow-Methods", "*")
 		ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization, content-type")
 		r.Handler(ctx)
 	}); err != nil {
-		log.Panic(err.Error())
+		logger.Panic(err.Error())
 	}
 }
 

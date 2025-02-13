@@ -69,7 +69,9 @@ func (repo *userRepository) Update(c common.Ioc, user UserModel) error {
 
 func (repo *userRepository) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&UserModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}

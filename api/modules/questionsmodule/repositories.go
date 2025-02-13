@@ -74,7 +74,9 @@ func (repo *questionSetRepository) GetByOwnerId(c common.Ioc, id modelmodule.Mod
 		Where("question_sets.owner_id = ?", id).
 		// Order("question_sets.created_at DESC").
 		Find(&models); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	}
 	return models
 }
@@ -112,7 +114,9 @@ func (repo *questionSetRepository) Search(c common.Ioc, args SearchQuestionSets)
 
 	tx = tx.Find(&models)
 	if tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	}
 	return models
 }
@@ -136,7 +140,9 @@ func (repo *questionSetRepository) Update(c common.Ioc, model QuestionSetModel) 
 
 func (repo *questionSetRepository) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&QuestionSetModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}
@@ -196,7 +202,9 @@ func (repo *questionRepository) Update(c common.Ioc, model QuestionModel) error 
 
 func (repo *questionRepository) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&QuestionModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}

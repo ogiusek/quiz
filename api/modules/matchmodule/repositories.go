@@ -61,7 +61,9 @@ func (repo *matchRepositoryImpl) GetById(c common.Ioc, id modelmodule.ModelId) *
 
 func (repo *matchRepositoryImpl) Create(c common.Ioc, model MatchModel) error {
 	if tx := repo.db(c).Create(&model); tx.Error != nil {
-		log.Printf("MatchRepository.Create error: %s", tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Printf("MatchRepository.Create error: %s", tx.Error.Error())
 		return common.ErrRepositoryConflict
 	}
 	return nil
@@ -79,7 +81,9 @@ func (repo *matchRepositoryImpl) Update(c common.Ioc, model MatchModel) error {
 
 func (repo *matchRepositoryImpl) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&MatchModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Print(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}
@@ -109,7 +113,9 @@ func (repo *matchCourseRepositoryImpl) db(c common.Ioc) *gorm.DB {
 func (repo *matchCourseRepositoryImpl) Create(c common.Ioc, model MatchCourseModel) error {
 	db := repo.db(c)
 	if tx := db.Omit("Match", "Questions").Create(&model); tx.Error != nil {
-		log.Printf("MatchCourseRepository.Create error: %s", tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Printf("MatchCourseRepository.Create error: %s", tx.Error.Error())
 		return common.ErrRepositoryConflict
 	}
 
@@ -137,7 +143,9 @@ func (repo *matchCourseRepositoryImpl) Update(c common.Ioc, model MatchCourseMod
 
 func (repo *matchCourseRepositoryImpl) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&MatchCourseModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}
@@ -166,7 +174,9 @@ func (repo *answeredQuestionsRepositoryImpl) db(c common.Ioc) *gorm.DB {
 
 func (repo *answeredQuestionsRepositoryImpl) Create(c common.Ioc, model AnsweredQuestionModel) error {
 	if tx := repo.db(c).Save(&model); tx.Error != nil {
-		log.Printf("AnsweredQuestionsRepository.Create error: %s", tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Printf("AnsweredQuestionsRepository.Create error: %s", tx.Error.Error())
 		return common.ErrRepositoryConflict
 	}
 	return nil
@@ -184,7 +194,9 @@ func (repo *answeredQuestionsRepositoryImpl) Update(c common.Ioc, model Answered
 
 func (repo *answeredQuestionsRepositoryImpl) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&AnsweredQuestionModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}
@@ -222,7 +234,9 @@ func (repo *playerRepositoryImpl) GetByUserId(c common.Ioc, userId modelmodule.M
 		First(&player); tx.Error == gorm.ErrRecordNotFound {
 		return nil
 	} else if tx.Error != nil {
-		log.Printf("PlayerRepository.GetByUserId error: %s", tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Printf("PlayerRepository.GetByUserId error: %s", tx.Error.Error())
 		return nil
 	}
 	return &player
@@ -230,7 +244,9 @@ func (repo *playerRepositoryImpl) GetByUserId(c common.Ioc, userId modelmodule.M
 
 func (repo *playerRepositoryImpl) Create(c common.Ioc, model PlayerModel) error {
 	if tx := repo.db(c).Save(&model); tx.Error != nil {
-		log.Printf("PlayerRepository.Create error: %s", tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Printf("PlayerRepository.Create error: %s", tx.Error.Error())
 		return common.ErrRepositoryConflict
 	}
 	return nil
@@ -248,7 +264,9 @@ func (repo *playerRepositoryImpl) Update(c common.Ioc, model PlayerModel) error 
 
 func (repo *playerRepositoryImpl) Delete(c common.Ioc, id modelmodule.ModelId) error {
 	if tx := repo.db(c).Where("id = ?", id).Delete(&PlayerModel{}); tx.Error != nil {
-		log.Panic(tx.Error.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic(tx.Error.Error())
 	} else if tx.RowsAffected == 0 {
 		return common.ErrRepositoryNotFound
 	}

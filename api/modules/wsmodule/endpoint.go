@@ -43,7 +43,9 @@ func NewMiddleware(invoke func(c common.Ioc, message []byte, next func())) Middl
 func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, MessagePayload) {
 	argsType := reflect.TypeOf(argsPtr).Elem()
 	if _, ok := argsPtr.(common.Endpoint); !ok {
-		log.Panic("args which do not match 'Endpoint' interface cannot be mapped to endpoint")
+		var logger log.Logger
+		c.Scope().Inject(&logger)
+		logger.Panic("args which do not match 'Endpoint' interface cannot be mapped to endpoint")
 	}
 
 	var sockets SocketStorage
@@ -90,7 +92,9 @@ func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, Messa
 
 			res, err := json.Marshal(*response)
 			if err != nil {
-				log.Panicf("failure when encoding response %v, %s", *response, err.Error())
+				var logger log.Logger
+				c.Inject(&logger)
+				logger.Panicf("failure when encoding response %v, %s", *response, err.Error())
 			}
 
 			conn.conn.WriteMessage(websocket.TextMessage, res)
@@ -106,7 +110,9 @@ func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, Messa
 			return
 		}
 
-		log.Print(err.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Print(err.Error())
 		conn.conn.WriteMessage(websocket.TextMessage, []byte("server error"))
 	}
 

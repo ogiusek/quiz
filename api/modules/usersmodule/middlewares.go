@@ -44,7 +44,9 @@ func authorizeWsMiddleware(c common.Ioc, _ []byte, next func()) {
 	c.Inject(&socketIdStorage)
 	id := socketIdStorage.Get()
 	if id == nil {
-		log.Panic("socket id is null")
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Panic("socket id is null")
 	}
 
 	var userRepo UserRepository

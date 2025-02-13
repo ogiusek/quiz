@@ -249,8 +249,10 @@ func (args *ChangeProfilePictureArgs) Handle(c common.Ioc) error {
 	}
 
 	if err := fileStorage.UnTrack(previousImage.File()); err != nil {
-		log.Print("shutting down app because of an error. failed to remove used file. determine why used file got deleted")
-		log.Panic(err.Error())
+		var logger log.Logger
+		c.Inject(&logger)
+		logger.Print("shutting down app because of an error. failed to remove used file. determine why used file got deleted")
+		logger.Panic(err.Error())
 	}
 
 	user.ChangeProfilePicture(filesmodule.NewImageId(file))

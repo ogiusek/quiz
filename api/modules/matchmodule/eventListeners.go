@@ -83,7 +83,9 @@ func deletedMatchHandler(event DeletedMatchEvent) {
 	event.Services.Inject(&repo)
 	err := repo.Delete(event.Services, event.Model.Id)
 	if err != nil {
-		log.Printf("error deleting match %s", err.Error())
+		var logger log.Logger
+		event.Services.Inject(&logger)
+		logger.Printf("error deleting match %s", err.Error())
 	}
 
 	var manager wsmodule.SocketsMessager
