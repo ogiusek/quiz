@@ -1,0 +1,9 @@
+{
+  "rest-client.environmentVariables": {
+    "$shared": {
+      "api": "http://localhost:5050",
+      "user_name": "",
+      "user_password": ""
+    }
+  }
+}
