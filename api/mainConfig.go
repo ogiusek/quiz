@@ -43,9 +43,12 @@ func (e *Env) Valid() []error {
 	return errs
 }
 
+// config getter
+
 type MainConfig struct {
 	Env         Env                    `json:"env"`
 	Port        int                    `json:"port"`
+	Dsn         string                 `json:"dsn"`
 	JwtSecret   string                 `json:"jwt_secret"`
 	UsersConfig usersmodule.UserConfig `json:"user_config"`
 }
@@ -57,6 +60,9 @@ func (c *MainConfig) Valid() []error {
 	}
 	if c.Port <= 0 {
 		errs = append(errs, common.ErrPath(errors.New("port has to be positive number")).Property("port"))
+	}
+	if c.Dsn == "" {
+		errs = append(errs, common.ErrPath(errors.New("dsn is missing")).Property("dsn"))
 	}
 	if c.JwtSecret == "" {
 		errs = append(errs, common.ErrPath(errors.New("missing jwt secret")).Property("jwt_secret"))

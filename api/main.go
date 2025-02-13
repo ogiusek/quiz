@@ -46,8 +46,7 @@ func main() {
 		GormLogger = gormLogger.Discard
 	}
 
-	dsn := "host=localhost port=5432 user=username password=password dbname=database"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(postgres.Open(config.Dsn), &gorm.Config{
 		Logger: GormLogger,
 	})
 	if err != nil {
@@ -76,11 +75,14 @@ func main() {
 	}
 
 	logger.Printf("starting server on :%d", config.Port)
-	if err := fasthttp.ListenAndServe(fmt.Sprintf(":%d", config.Port), func(ctx *fasthttp.RequestCtx) { // CORS
+	if err := fasthttp.ListenAndServe(fmt.Sprintf(":%d", config.Port), func(ctx *fasthttp.RequestCtx) {
+		// CORS
 		ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
 		ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
 		ctx.Response.Header.Set("Access-Control-Allow-Methods", "*")
 		ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization, content-type")
+
+		// handle request
 		r.Handler(ctx)
 	}); err != nil {
 		logger.Panic(err.Error())
