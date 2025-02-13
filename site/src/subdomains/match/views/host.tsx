@@ -10,7 +10,7 @@ export const Host = () => {
     <Nav />
     <main className="flex justify-center items-center h-screen p-2">
       <div className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-md flex flex-col justify-center items-center gap-4">
-        <Button onClick={() => wsContext.SendMessage({ topic: "match/host", payload: {} })}>
+        <Button aria-label="host" onClick={() => wsContext.SendMessage({ topic: "match/host", payload: {} })}>
           Host match
         </Button>
       </div>

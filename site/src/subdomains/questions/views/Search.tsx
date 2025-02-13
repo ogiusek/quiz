@@ -61,7 +61,7 @@ export function Search() {
           setPage(0)
         }}>
           <Input value={search} placeholder="search" onChange={e => setSearch(e.target.value)} />
-          <Button variant="ghost" type="submit">
+          <Button aria-label="search" variant="ghost" type="submit">
             <SearchIcon />
           </Button>
         </form>

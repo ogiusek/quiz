@@ -55,7 +55,7 @@ export const Join = () => {
       <div className="bg-card text-card-foreground w-full max-w-lg rounded-lg shadow-lg p-8 border flex flex-col gap-4">
         <h1 className="text-2xl">Join match</h1>
         <Input value={matchId} onChange={e => setMatchId(e.target.value)} placeholder="eecca86c-5c89-4eb0-b6e6-cc611f4c8992" />
-        <Button asChild variant="outline">
+        <Button aria-label="join link" asChild variant="outline">
           <Link to={`/quiz/join/${matchId}`}>Join</Link>
         </Button>
       </div>

@@ -29,7 +29,7 @@ export const LeaderboardSerivce: React.FC<{ children: React.ReactNode }> = ({ ch
             <div className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-3xl h-5/6 flex flex-col gap-4">
               <div className="flex flex-row justify-between">
                 <h2>Leader board</h2>
-                <Button onClick={() => setMatch(undefined)}><X /></Button>
+                <Button aria-label="exit" onClick={() => setMatch(undefined)}><X /></Button>
               </div>
               <h3 className="text-2xl">Winner is <span className="text-3xl">{winner?.User.UserName.Value}</span></h3>
 

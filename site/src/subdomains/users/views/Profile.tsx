@@ -62,7 +62,7 @@ export function Profile() {
         <h1 className="text-center text-3xl">Quiz</h1>
         <div className="flex flex-row justify-between">
           <h2 className="text-2xl">Profile</h2>
-          <Button variant="destructive" className="w-max ml-auto" onClick={LogOut}><LogOutIcon /></Button>
+          <Button aria-label="log out" variant="destructive" className="w-max ml-auto" onClick={LogOut}><LogOutIcon /></Button>
         </div>
 
         <div className="w-full flex justify-center items-center">
@@ -73,7 +73,7 @@ export function Profile() {
           <Label htmlFor="name">Name</Label>
           <div className="flex flex-row gap-2 justify-center items-center">
             <Input id="name" type="text" placeholder="John" value={name.Value} onChange={e => setName(new Name(e.target.value))} />
-            <Button variant="outline" disabled={name.Valid().length != 0} onClick={SaveName}>
+            <Button aria-label="edit name " variant="outline" disabled={name.Valid().length != 0} onClick={SaveName}>
               <Edit />
             </Button>
           </div>
@@ -88,7 +88,7 @@ export function Profile() {
           <Label htmlFor="repeat_password">Repeat Password</Label>
           <div className="flex flex-row gap-2 justify-center items-center">
             <Input id="repeat_password" type="password" placeholder="********" value={repeatPassword.Value} onChange={e => setRepeatPassword(new Password(e.target.value))} />
-            <Button variant="outline" disabled={[...password.Valid(), ...repeatPasswordFoundErrors].length != 0} onClick={SavePassword}>
+            <Button aria-label="edit password" variant="outline" disabled={[...password.Valid(), ...repeatPasswordFoundErrors].length != 0} onClick={SavePassword}>
               <Edit />
             </Button>
           </div>

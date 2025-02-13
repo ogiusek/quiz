@@ -65,11 +65,11 @@ export default function Login() {
         </ShowVoErrors>
 
         <ShowErrors allErrors={errors} errors={errors}>
-          <Button className="w-full" type="submit" disabled={errors.length != 0}>Login</Button>
+          <Button aria-label="login link" className="w-full" type="submit" disabled={errors.length != 0}>Login</Button>
         </ShowErrors>
 
         <div className="flex flex-row justify-between">
-          <Button asChild variant="link"><Link to="/user/register">register</Link></Button>
+          <Button aria-label="register link" asChild variant="link"><Link to="/user/register">register</Link></Button>
           {/* <Button asChild variant="link"><Link to="/user/login">login</Link></Button> */}
         </div>
       </form>
