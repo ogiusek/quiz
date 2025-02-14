@@ -10,6 +10,9 @@ import { ReJoinService } from './subdomains/match/contexts/rejoin'
 import { MatchService } from './subdomains/match/contexts/match'
 import { LeaderboardSerivce } from './subdomains/match/contexts/leaderboard'
 
+const Url = import.meta.env.VITE_API_URL
+const WsUrl = import.meta.env.VITE_API_WS_URL
+
 const services: React.FC<{ children: React.ReactNode }>[] = [
   // universal
   ThemeService,
@@ -17,7 +20,7 @@ const services: React.FC<{ children: React.ReactNode }>[] = [
   WsService,
   WsNoties,
   SessionService,
-  ApiService,
+  ApiService({ Url, WsUrl }),
 
   // match
   LeaderboardSerivce,

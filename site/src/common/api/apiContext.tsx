@@ -7,19 +7,26 @@ import { WsContext } from "../ws/wsContext";
 
 export const ApiContext = createContext<ApiDefinition>({
   Url: "",
+  WsUrl: "",
   ErrorHandler() { throw new Error("not implemented") },
   InvalidResponseHandler() { throw new Error("not implemented") },
 })
 
+type ApiEnv = {
+  Url: string
+  WsUrl: string
+}
+
 // this shouldn't be in common because of its dependencies but is for convienience
 // this makes this service easier to locate
-export const ApiService: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ApiService: (_: ApiEnv) => React.FC<{ children: React.ReactNode }> = ({ Url, WsUrl }) => ({ children }) => {
   const wsContext = useContext(WsContext)
   const sessionStorage = useContext(SessionContext)
   const notiesStorage = useContext(NotiesContext)
 
   const api: ApiDefinition = {
-    Url: `http://${window.location.hostname}:5050`,
+    Url: Url,
+    WsUrl: WsUrl,
 
     ErrorHandler(error) {
       notiesStorage.AddNoty({
@@ -33,7 +40,13 @@ export const ApiService: React.FC<{ children: React.ReactNode }> = ({ children }
       const session = sessionStorage.GetSession()
 
       if (response.status == 401 && session && session) {
-        const response = await Refresh({ Session: session }, api)
+        const response = await Refresh({ Session: session }, {
+          ...api,
+          async InvalidResponseHandler(_) {
+            sessionStorage.UnSetSession()
+            return undefined
+          },
+        })
         if (response.Ok) {
           sessionStorage.SetSession(response.Model)
           return { additional: { Session: response.Model } }
@@ -64,7 +77,7 @@ export const ApiService: React.FC<{ children: React.ReactNode }> = ({ children }
 
       if (sessionStorage.GetSession()?.Valid() != 'valid') return
 
-      const ws = new WebSocket(`ws://${window.location.hostname}:5050/ws?authorization=${sessionStorage.GetSession()!.SessionToken()}`)
+      const ws = new WebSocket(`${api.WsUrl}/ws?authorization=${sessionStorage.GetSession()!.SessionToken()}`)
       return ws
     })
     wsContext.Connect()
