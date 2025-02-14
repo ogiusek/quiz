@@ -81,7 +81,7 @@ export const ApiService: (_: ApiEnv) => React.FC<{ children: React.ReactNode }> 
       return ws
     })
     wsContext.Connect()
-  })
+  }, [sessionStorage])
 
   return <ApiContext.Provider value={api}>
     {children}
