@@ -60,7 +60,7 @@ export function MyQuestionSets() {
 
   return <>
     <Nav />
-    <main className="flex justify-center items-center h-screen p-2">
+    <main className="flex justify-center items-center h-screen p-2 pt-12">
       <div ref={ref as React.RefObject<HTMLDivElement> | undefined} className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-2xl h-full flex flex-col gap-4 overflow-y-auto">
         <h1 className="text-3xl">My Question sets</h1>
         <div className="w-full flex flex-col gap-2 p-2 border rounded-md">
