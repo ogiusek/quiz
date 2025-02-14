@@ -4,6 +4,7 @@ type Redo = {
 
 export type ApiDefinition = {
   Url: string
+  WsUrl: string
   InvalidResponseHandler: (response: Response) => Promise<Redo>
   ErrorHandler: (error: any) => void
 }
@@ -30,6 +31,7 @@ export const ApiEndpoint = <TArgs, TRes>(handler: ApiEndpoint<TArgs, TRes>): Api
       redo = false
       const res = await handler(args, {
         Url: api.Url,
+        WsUrl: api.WsUrl,
         ErrorHandler: api.ErrorHandler,
         InvalidResponseHandler: async (response) => {
           const redoRes = await api.InvalidResponseHandler(response)
