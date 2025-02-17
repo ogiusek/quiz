@@ -85,7 +85,7 @@ func main() {
 		// handle request
 		r.Handler(ctx)
 	}); err != nil {
-		logger.Panic(err.Error())
+		log.Panic(err.Error())
 	}
 }
 
