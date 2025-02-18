@@ -96,7 +96,7 @@ func (storage *serviceStorageImpl[T]) Get() *T {
 
 func (storage *serviceStorageImpl[T]) MustGet() T {
 	if storage.service == nil {
-		log.Panicf("there is no set service of type %s", reflect.TypeOf(storage.service).Name())
+		log.Panicf("service storage of type \"%s\" is not set", reflect.TypeOf(storage.service).String())
 	}
 	return *storage.service
 }
