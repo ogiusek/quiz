@@ -7,6 +7,7 @@ import (
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
+	"github.com/streadway/amqp"
 	"github.com/valyala/fasthttp"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,19 @@ func (MainPackage) Db(db *gorm.DB) {
 }
 
 func (MainPackage) Services(c *ioc.Container) {
+	var config MainConfig
+	c.MustResolve(&config)
+
+	conn, err := amqp.Dial(config.RabbitMqUrl)
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return ch, nil }, (**amqp.Channel)(nil), ioc.PerContainer)
+
 	// handling requests services
 	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return common.NewServiceGroup[common.Middleware](), nil }, (*common.ServiceGroup[common.Middleware])(nil), ioc.PerContainer)
 	c.MustRegister(func(f ioc.Factory) (interface{}, error) { return common.NewServiceGroup[common.HttpMiddleware](), nil }, (*common.ServiceGroup[common.HttpMiddleware])(nil), ioc.PerContainer)
@@ -70,7 +84,6 @@ func (MainPackage) Variables(c common.Ioc) {
 	}
 
 	generalMiddlewareGroup.Add(common.NewMiddleware(generalMiddleware))
-
 	httpMiddlewaresGroup.Add(common.NewHttpMiddleware(func(ctx *fasthttp.RequestCtx, c common.Ioc, next func()) { generalMiddleware(c, next) }))
 	wsMiddlewaresGroup.Add(wsmodule.NewMiddleware(func(c common.Ioc, message []byte, next func()) { generalMiddleware(c, next) }))
 }

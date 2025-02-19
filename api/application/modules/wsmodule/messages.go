@@ -28,24 +28,24 @@ func NewMessage(topic string, payload any) Message {
 
 type SocketsMessager interface {
 	// panics when there is already existing listener
-	Listen(MessageTopic, func(SocketId, SocketConn, MessagePayload))
+	Listen(MessageTopic, func(SocketId, MessagePayload))
 
 	GetListenersTopics() []MessageTopic
 
 	// passes Sockets error
-	Send(SocketId, Message) error
+	Send(id SocketId, message Message) error
 }
 
 type socketsMessagerImpl struct {
 	sockets                SocketStorage
-	listeners              map[MessageTopic]func(SocketId, SocketConn, MessagePayload)
+	listeners              map[MessageTopic]func(SocketId, MessagePayload)
 	missingPayloadListener func(SocketId)
 	cannotDecodeListener   func(SocketId, []byte, error)
 	invalidTopicListener   func(SocketId, Message)
 }
 
 func (messager *socketsMessagerImpl) listen() {
-	messager.sockets.OnMessage(func(id SocketId, conn SocketConn, bytes []byte) {
+	messager.sockets.OnMessage(func(id SocketId, bytes []byte) {
 		var decodedMessage struct {
 			Topic   MessageTopic `json:"topic"`
 			Payload any          `json:"payload"`
@@ -73,7 +73,7 @@ func (messager *socketsMessagerImpl) listen() {
 			return
 		}
 
-		listener(id, conn, payload)
+		listener(id, payload)
 	})
 }
 
@@ -86,7 +86,7 @@ func NewSocketsMessager(sockets SocketStorage) SocketsMessager {
 	var messager *socketsMessagerImpl
 	messager = &socketsMessagerImpl{
 		sockets:   sockets,
-		listeners: make(map[MessageTopic]func(SocketId, SocketConn, MessagePayload)),
+		listeners: make(map[MessageTopic]func(SocketId, MessagePayload)),
 		cannotDecodeListener: func(socket SocketId, message []byte, err error) {
 			sockets.SendMessage(socket, []byte(errInvalidMessage.Error()))
 		},
@@ -102,7 +102,7 @@ func NewSocketsMessager(sockets SocketStorage) SocketsMessager {
 	return messager
 }
 
-func (m *socketsMessagerImpl) Listen(topic MessageTopic, handler func(SocketId, SocketConn, MessagePayload)) {
+func (m *socketsMessagerImpl) Listen(topic MessageTopic, handler func(SocketId, MessagePayload)) {
 	if _, exists := m.listeners[topic]; exists {
 		log.Panicf("cannot add '%s' listener because it already exists", topic)
 	}
@@ -122,5 +122,7 @@ func (m *socketsMessagerImpl) Send(id SocketId, message Message) error {
 	if err != nil {
 		return err
 	}
-	return m.sockets.SendMessage(id, bytes)
+
+	m.sockets.SendMessage(id, bytes)
+	return nil
 }

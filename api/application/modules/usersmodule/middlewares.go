@@ -1,9 +1,7 @@
 package usersmodule
 
 import (
-	"log"
 	"quizapi/common"
-	"quizapi/modules/modelmodule"
 	"quizapi/modules/wsmodule"
 
 	"github.com/valyala/fasthttp"
@@ -32,30 +30,30 @@ func authorizeHttpMiddleware(ctx *fasthttp.RequestCtx, c common.Ioc, next func()
 	c.Inject(&sessionStorage)
 	sessionStorage.Set(session)
 
-	var socketIdStorage common.ServiceStorage[wsmodule.SocketId]
-	c.Inject(&socketIdStorage)
-	socketIdStorage.Set(wsmodule.SocketId(session.UserId))
-
 	next()
 }
 
 func authorizeWsMiddleware(c common.Ioc, _ []byte, next func()) {
 	var socketIdStorage common.ServiceStorage[wsmodule.SocketId]
 	c.Inject(&socketIdStorage)
-	id := socketIdStorage.Get()
-	if id == nil {
-		var logger log.Logger
-		c.Inject(&logger)
-		logger.Panic("socket id is null")
+	id := socketIdStorage.MustGet()
+
+	var socketRepo UserSocketRepo
+	c.Inject(&socketRepo)
+	socket := socketRepo.GetBySocket(c, id)
+	if socket == nil {
+		return
 	}
 
 	var userRepo UserRepository
 	c.Inject(&userRepo)
-	user := userRepo.GetById(c, modelmodule.ModelId(*id))
+	user := userRepo.GetById(c, socket.UserId)
 	if user == nil { // user got deleted when in game
 		var socketStorage wsmodule.SocketStorage
 		c.Inject(&socketStorage)
-		socketStorage.Close(*id)
+		for _, us := range socketRepo.GetByUser(c, socket.UserId) {
+			socketStorage.Close(us.SocketId)
+		}
 		return
 	}
 

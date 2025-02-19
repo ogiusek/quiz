@@ -6,8 +6,6 @@ import (
 	"quizapi/common"
 	"reflect"
 	"strings"
-
-	"github.com/fasthttp/websocket"
 )
 
 type Middleware interface {
@@ -40,7 +38,7 @@ func NewMiddleware(invoke func(c common.Ioc, message []byte, next func())) Middl
 }
 
 // argsPtr have to be a pointer to empty args model
-func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, MessagePayload) {
+func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, MessagePayload) {
 	argsType := reflect.TypeOf(argsPtr).Elem()
 	if _, ok := argsPtr.(common.Endpoint); !ok {
 		var logger log.Logger
@@ -54,14 +52,13 @@ func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, Messa
 	c.Scope().Inject(&sockets)
 
 	endpoint := func(c common.Ioc, bytes []byte) {
-		var connStorage common.ServiceStorage[SocketConn]
-		c.Inject(&connStorage)
-		conn := connStorage.MustGet()
-
+		var idStorage common.ServiceStorage[SocketId]
+		c.Inject(&idStorage)
+		id := idStorage.MustGet()
 		args := reflect.New(argsType).Interface()
 
 		if err := json.Unmarshal(bytes, &args); err != nil {
-			conn.conn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+			sockets.SendMessage(id, []byte(err.Error()))
 			return
 		}
 
@@ -74,11 +71,10 @@ func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, Messa
 				}
 
 				response := strings.Join(messages, "\n")
-				conn.conn.WriteMessage(websocket.TextMessage, []byte(response))
+				sockets.SendMessage(id, []byte(response))
 				return
 			}
 		}
-
 		err := args.(common.Endpoint).Handle(c)
 
 		if err == nil {
@@ -97,7 +93,7 @@ func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, Messa
 				logger.Panicf("failure when encoding response %v, %s", *response, err.Error())
 			}
 
-			conn.conn.WriteMessage(websocket.TextMessage, res)
+			sockets.SendMessage(id, res)
 			return
 		}
 
@@ -106,29 +102,25 @@ func WsEndpoint(c common.IocScope, argsPtr any) func(SocketId, SocketConn, Messa
 		errStorage.Set(err)
 
 		if httpError, ok := err.(common.HttpError); ok {
-			conn.conn.WriteMessage(websocket.TextMessage, []byte(httpError.Error()))
+			sockets.SendMessage(id, []byte(httpError.Error()))
 			return
 		}
 
 		var logger log.Logger
 		c.Inject(&logger)
 		logger.Print(err.Error())
-		conn.conn.WriteMessage(websocket.TextMessage, []byte("server error"))
+		sockets.SendMessage(id, []byte("server error"))
 	}
 
 	var middlewaresGroup common.ServiceGroup[Middleware]
 	c.Scope().Inject(&middlewaresGroup)
 	middlewares := middlewaresGroup.GetAll()
 
-	return func(id SocketId, conn SocketConn, m MessagePayload) {
+	return func(id SocketId, m MessagePayload) {
 		scope := c.Scope()
 		var socketIdStorage common.ServiceStorage[SocketId]
 		scope.Inject(&socketIdStorage)
 		socketIdStorage.Set(id)
-
-		var socketConnStorage common.ServiceStorage[SocketConn]
-		scope.Inject(&socketConnStorage)
-		socketConnStorage.Set(conn)
 
 		RunMiddlewares(middlewares, scope, m, endpoint)
 	}

@@ -4,6 +4,7 @@ import (
 	"log"
 	"quizapi/modules/eventsmodule"
 	"quizapi/modules/timemodule"
+	"quizapi/modules/usersmodule"
 	"quizapi/modules/wsmodule"
 	"time"
 )
@@ -57,8 +58,12 @@ func createdMatchHandler(event CreatedMatchEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Model.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/created_match", event.Model.FullDto(event.Services)))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/created_match", event.Model.FullDto(event.Services)))
+		}
 	}
 }
 
@@ -71,8 +76,12 @@ func changedMatchHandler(event ChangedMatchEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Model.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/changed_match", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/changed_match", event.Model.Dto()))
+		}
 	}
 }
 
@@ -90,8 +99,12 @@ func deletedMatchHandler(event DeletedMatchEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Model.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/deleted_match", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/deleted_match", event.Model.Dto()))
+		}
 	}
 }
 
@@ -106,8 +119,12 @@ func createdMatchCourseHandler(event CreatedMatchCourseEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/created_match_course", event.Model.FullDto(event.Services)))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/created_match_course", event.Model.FullDto(event.Services)))
+		}
 	}
 
 	var scheduler timemodule.Scheduler
@@ -129,8 +146,12 @@ func changedMatchCourseHandler(event ChangedMatchCourseEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/changed_match_course", event.Model.Dto(event.Services)))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/changed_match_course", event.Model.Dto(event.Services)))
+		}
 	}
 
 	var scheduler timemodule.Scheduler
@@ -152,8 +173,12 @@ func deletedMatchCourseHandler(event DeletedMatchCourseEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/deleted_match_course", event.Model.Dto(event.Services)))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/deleted_match_course", event.Model.Dto(event.Services)))
+		}
 	}
 }
 
@@ -168,8 +193,12 @@ func createdAnsweredQuestionHandler(event CreatedAnsweredQuestionEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/created_answered_question", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/created_answered_question", event.Model.Dto()))
+		}
 	}
 }
 
@@ -182,8 +211,12 @@ func changedAnsweredQuestionHandler(event ChangedAnsweredQuestionEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/changed_answered_question", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/changed_answered_question", event.Model.Dto()))
+		}
 	}
 }
 
@@ -196,8 +229,12 @@ func deletedAnsweredQuestionHandler(event DeletedAnsweredQuestionEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/deleted_answered_question", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/deleted_answered_question", event.Model.Dto()))
+		}
 	}
 }
 
@@ -212,8 +249,12 @@ func createdPlayerHandler(event CreatedPlayerEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/created_player", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/created_player", event.Model.Dto()))
+		}
 	}
 }
 
@@ -226,8 +267,12 @@ func changedPlayerHandler(event ChangedPlayerEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/changed_player", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/changed_player", event.Model.Dto()))
+		}
 	}
 }
 
@@ -240,7 +285,11 @@ func deletedPlayerHandler(event DeletedPlayerEvent) {
 
 	var manager wsmodule.SocketsMessager
 	event.Services.Inject(&manager)
+	var socketsRepo usersmodule.UserSocketRepo
+	event.Services.Inject(&socketsRepo)
 	for _, player := range event.Match.onlinePlayers() {
-		manager.Send(wsmodule.SocketId(player.UserId), wsmodule.NewMessage("match/deleted_player", event.Model.Dto()))
+		for _, socket := range socketsRepo.GetByUser(event.Services, player.UserId) {
+			manager.Send(socket.SocketId, wsmodule.NewMessage("match/deleted_player", event.Model.Dto()))
+		}
 	}
 }

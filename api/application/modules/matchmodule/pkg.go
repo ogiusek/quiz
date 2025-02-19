@@ -21,8 +21,6 @@ func (Package) Db(db *gorm.DB) {
 		&MatchCourseQuestionModel{},
 	)
 	db.SetupJoinTable(&MatchCourseModel{}, "Questions", &MatchCourseQuestionModel{})
-
-	db.Where("1 = 1").Delete(&MatchModel{})
 }
 
 func (Package) Services(c *ioc.Container) {
@@ -61,8 +59,21 @@ func (Package) Endpoints(r *router.Router, c common.IocScope) {
 
 	var sockets wsmodule.SocketStorage
 	c.Scope().Inject(&sockets)
+	scope := c.Scope()
+
+	var middlewares common.ServiceGroup[common.Middleware]
+	scope.Inject(&middlewares)
+	sockets.OnStart(func() {
+		common.RunMiddlewares(middlewares.GetAll(), func(c common.Ioc) {
+			var dbStorage common.ServiceStorage[*gorm.DB]
+			c.Inject(&dbStorage)
+			dbStorage.MustGet().Where("1 = 1").Delete(&MatchModel{})
+		}, c.Scope())
+	})
+
 	activeGame := wsmodule.WsEndpoint(c, (*ActiveGameArgs)(nil))
+	sockets.OnConnect(func(id wsmodule.SocketId) { activeGame(id, wsmodule.EmptyPayload) })
+
 	quit := wsmodule.WsEndpoint(c, (*QuitArgs)(nil))
-	sockets.OnConnect(func(id wsmodule.SocketId, conn wsmodule.SocketConn) { activeGame(id, conn, wsmodule.EmptyPayload) })
-	sockets.OnClose(func(id wsmodule.SocketId, conn wsmodule.SocketConn) { quit(id, conn, wsmodule.EmptyPayload) })
+	sockets.OnClose(func(id wsmodule.SocketId) { quit(id, wsmodule.EmptyPayload) })
 }

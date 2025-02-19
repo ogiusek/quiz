@@ -4,10 +4,11 @@ import (
 	"quizapi/common"
 	"quizapi/modules/filesmodule"
 	"quizapi/modules/modelmodule"
+	"quizapi/modules/wsmodule"
 )
 
 // user model
-//
+// user sockets
 
 // user model
 
@@ -39,4 +40,18 @@ func (user *UserModel) ChangeProfilePicture(newImage filesmodule.ImageId) {
 
 func (user *UserModel) ChangePassword(password UserPassword, hasher common.Hasher) {
 	user.Hash = hasher.Hash([]byte(password))
+}
+
+// user sockets
+
+type UserSocket struct {
+	SocketId wsmodule.SocketId   `gorm:"column:socket_id;type:varchar(36);not null;primaryKey"`
+	UserId   modelmodule.ModelId `gorm:"column:user_id;type:varchar(36);not null"`
+}
+
+func NewUserSocket(socketId wsmodule.SocketId, userId modelmodule.ModelId) UserSocket {
+	return UserSocket{
+		SocketId: socketId,
+		UserId:   userId,
+	}
 }

@@ -1,15 +1,68 @@
 package wsmodule
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
-	"sync"
+	"fmt"
+	"log"
+	"quizapi/common"
 
 	"github.com/fasthttp/websocket"
+	"github.com/ogiusek/wshub"
+	"github.com/streadway/amqp"
 )
 
-type SocketId string
-type SocketConn struct {
-	conn *websocket.Conn
+const (
+	ExchangeWsStarted             string = "ws_started"
+	ExchangeWsConnectRequest      string = "ws_connect_request"
+	ExchangeWsConnectConfirmation string = "ws_connect_confirmation"
+	ExchangeWsReceived            string = "ws_received"
+	ExchangeWsRespond             string = "ws_respond"
+	ExchangeWsClose               string = "ws_close"
+	ExchangeWsClosed              string = "ws_closed"
+)
+
+const (
+	QueueWsStarted             string = "ws_main_started"
+	QueueWsConnectRequest      string = "ws_main_connect_request"
+	QueueWsConnectConfirmation string = "ws_main_connect_confirmation"
+	QueueWsReceived            string = "ws_main_received"
+	QueueWsRespond             string = "ws_main_respond"
+	QueueWsClose               string = "ws_main_close"
+	QueueWsClosed              string = "ws_main_closed"
+)
+
+var binds map[string]string = map[string]string{
+	ExchangeWsStarted:             QueueWsStarted,
+	ExchangeWsConnectRequest:      QueueWsConnectRequest,
+	ExchangeWsConnectConfirmation: QueueWsConnectConfirmation,
+	ExchangeWsReceived:            QueueWsReceived,
+	ExchangeWsRespond:             QueueWsRespond,
+	ExchangeWsClose:               QueueWsClose,
+	ExchangeWsClosed:              QueueWsClosed,
+}
+
+//
+
+type SocketId wshub.Id
+
+// Implement the driver.Valuer interface.
+func (v SocketId) Value() (driver.Value, error) {
+	id := wshub.Id(v)
+	return id.String(), nil
+}
+
+// Implement the driver.Scanner interface.
+func (v *SocketId) Scan(value interface{}) error {
+	stringValue, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("expected string value")
+	}
+
+	*v = SocketId(wshub.SocketIdFrom(stringValue))
+
+	return nil
 }
 
 var (
@@ -18,120 +71,135 @@ var (
 )
 
 type socketConnect interface {
-	IsTaken(socket SocketId) bool
-	Connect(socket SocketId, conn *websocket.Conn) error
+	Listen()
 }
 
 type SocketStorage interface {
-	SendMessage(socket SocketId, message []byte) error
-	Close(socket SocketId) error
+	SendMessage(socket SocketId, message []byte)
+	Close(socket SocketId)
 
-	OnConnect(listener func(id SocketId, conn SocketConn))
-	OnMessage(listener func(id SocketId, conn SocketConn, message []byte))
-	OnClose(listener func(id SocketId, conn SocketConn))
+	OnStart(listener func())
+	OnConnect(listener func(id SocketId))
+	OnMessage(listener func(id SocketId, message []byte))
+	OnClose(listener func(id SocketId))
+}
+
+type socketInterface interface {
+	socketConnect
+	SocketStorage
 }
 
 type socketStorageImpl struct {
-	mux              sync.Mutex
+	channel          *amqp.Channel
+	connect          func(socketId SocketId, meta []byte) (canConnect bool)
 	sockets          map[SocketId][]*websocket.Conn
-	connectListeners []func(SocketId, SocketConn)
-	messageListeners []func(SocketId, SocketConn, []byte)
-	closeListeners   []func(SocketId, SocketConn)
+	startListeners   []func()
+	connectListeners []func(SocketId)
+	messageListeners []func(SocketId, []byte)
+	closeListeners   []func(SocketId)
 }
 
-func NewSockets() SocketStorage {
-	return &socketStorageImpl{
+func NewSocketStorage(c common.Ioc, connectHandler func(socketId SocketId, meta []byte) (canConnect bool)) socketInterface {
+	var ch *amqp.Channel
+	c.Inject(&ch)
+	storage := &socketStorageImpl{
+		channel: ch,
+		connect: connectHandler,
 		sockets: map[SocketId][]*websocket.Conn{},
 	}
+
+	return storage
 }
 
-func (impl *socketStorageImpl) getConn(id SocketId) ([]*websocket.Conn, bool) {
-	conn, ok := impl.sockets[id]
-	return conn, ok
-}
-
-func (impl *socketStorageImpl) run(id SocketId, conn *websocket.Conn) {
-	defer conn.Close()
-	impl.mux.Lock()
-	impl.sockets[id] = append(impl.sockets[id], conn)
-	impl.mux.Unlock()
-
-	for _, listener := range impl.connectListeners {
-		listener(id, SocketConn{conn: conn})
-	}
-
-	for {
-		_, bytes, err := conn.ReadMessage()
+func (storage *socketStorageImpl) Listen() {
+	go func() {
+		messages, err := storage.channel.Consume(QueueWsStarted, "", false, false, false, false, nil)
 		if err != nil {
-			break
+			log.Panic(err.Error())
 		}
-
-		for _, listener := range impl.messageListeners {
-			listener(id, SocketConn{conn: conn}, bytes)
+		for {
+			message := <-messages
+			for _, listener := range storage.startListeners {
+				listener()
+			}
+			message.Ack(true)
 		}
-	}
-
-	impl.mux.Lock()
-	sockets := []*websocket.Conn{}
-	for _, existingConn := range impl.sockets[id] {
-		if existingConn != conn {
-			sockets = append(sockets, existingConn)
+	}()
+	go func() {
+		messages, err := storage.channel.Consume(QueueWsConnectRequest, "", false, false, false, false, nil)
+		if err != nil {
+			log.Panic(err.Error())
 		}
-	}
-	impl.sockets[id] = sockets
-	impl.mux.Unlock()
-
-	if len(impl.sockets[id]) == 0 {
-		for _, listener := range impl.closeListeners {
-			listener(id, SocketConn{conn: conn})
+		for {
+			message := <-messages
+			var body wshub.ConnectRequest
+			json.Unmarshal(message.Body, &body)
+			canConnect := storage.connect(SocketId(body.SocketId), body.Payload)
+			for _, listener := range storage.connectListeners {
+				listener(SocketId(body.SocketId))
+			}
+			connectResponse := wshub.NewConnectConfirmation(body.SocketId, canConnect)
+			resBody, _ := json.Marshal(connectResponse)
+			storage.channel.Publish(ExchangeWsConnectConfirmation, "", false, false, amqp.Publishing{Body: resBody})
+			message.Ack(false)
 		}
-	}
+	}()
+	go func() {
+		messages, err := storage.channel.Consume(QueueWsReceived, "", false, false, false, false, nil)
+		if err != nil {
+			log.Panic(err.Error())
+		}
+		for {
+			message := <-messages
+			var body wshub.SocketMessage
+			json.Unmarshal(message.Body, &body)
+			for _, listener := range storage.messageListeners {
+				listener(SocketId(body.SocketId), body.Payload)
+			}
+			message.Ack(false)
+		}
+	}()
+	go func() {
+		messages, err := storage.channel.Consume(QueueWsClosed, "", false, false, false, false, nil)
+		if err != nil {
+			log.Panic(err.Error())
+		}
+		for {
+			message := <-messages
+			var body wshub.Close
+			json.Unmarshal(message.Body, &body)
+			for _, listener := range storage.closeListeners {
+				listener(SocketId(body.SocketId))
+			}
+			message.Ack(false)
+		}
+	}()
 }
 
-func (impl *socketStorageImpl) IsTaken(id SocketId) bool {
-	_, exists := impl.sockets[id]
-	return exists
+func (sockets *socketStorageImpl) SendMessage(id SocketId, bytes []byte) {
+	message := wshub.NewSocketMessage(wshub.Id(id), bytes)
+	body, _ := json.Marshal(message)
+	sockets.channel.Publish(ExchangeWsRespond, "", false, false, amqp.Publishing{Body: body})
 }
 
-func (sockets *socketStorageImpl) Connect(id SocketId, conn *websocket.Conn) error {
-	// if _, ok := sockets.sockets[id]; ok {
-	// 	return ErrSocketConflict
-	// }
-	// sockets.sockets[id]
-	sockets.run(id, conn)
-	return nil
+func (sockets *socketStorageImpl) Close(id SocketId) {
+	message := wshub.NewClose(wshub.Id(id))
+	body, _ := json.Marshal(message)
+	sockets.channel.Publish(ExchangeWsClose, "", false, false, amqp.Publishing{Body: body})
 }
 
-func (sockets *socketStorageImpl) SendMessage(id SocketId, message []byte) error {
-	conns, ok := sockets.getConn(id)
-	if !ok {
-		return ErrSocketNotFound
-	}
-	for _, conn := range conns {
-		conn.WriteMessage(websocket.TextMessage, message)
-	}
-	return nil
+func (sockets *socketStorageImpl) OnStart(listenr func()) {
+	sockets.startListeners = append(sockets.startListeners, listenr)
 }
 
-func (sockets *socketStorageImpl) Close(id SocketId) error {
-	conns, ok := sockets.getConn(id)
-	if !ok {
-		return ErrSocketNotFound
-	}
-	for _, conn := range conns {
-		conn.Close()
-	}
-	return nil
-}
-
-func (sockets *socketStorageImpl) OnConnect(listener func(SocketId, SocketConn)) {
+func (sockets *socketStorageImpl) OnConnect(listener func(SocketId)) {
 	sockets.connectListeners = append(sockets.connectListeners, listener)
 }
 
-func (sockets *socketStorageImpl) OnMessage(listener func(SocketId, SocketConn, []byte)) {
+func (sockets *socketStorageImpl) OnMessage(listener func(SocketId, []byte)) {
 	sockets.messageListeners = append(sockets.messageListeners, listener)
 }
 
-func (sockets *socketStorageImpl) OnClose(listener func(SocketId, SocketConn)) {
+func (sockets *socketStorageImpl) OnClose(listener func(SocketId)) {
 	sockets.closeListeners = append(sockets.closeListeners, listener)
 }

@@ -178,13 +178,13 @@ func (args *QuitArgs) Handle(c common.Ioc) error {
 
 	match.Quit(c, *player.User)
 
-	var socketStorage common.ServiceStorage[wsmodule.SocketId]
-	c.Inject(&socketStorage)
-	id := socketStorage.MustGet()
-
 	var socketsMessager wsmodule.SocketsMessager
 	c.Inject(&socketsMessager)
-	socketsMessager.Send(id, wsmodule.NewMessage("match/deleted_match", match.Dto()))
+	var socketsRepo usersmodule.UserSocketRepo
+	c.Inject(&socketsRepo)
+	for _, socket := range socketsRepo.GetByUser(c, player.UserId) {
+		socketsMessager.Send(socket.SocketId, wsmodule.NewMessage("match/deleted_match", match.Dto()))
+	}
 
 	return nil
 }

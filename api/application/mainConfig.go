@@ -47,6 +47,7 @@ func (e *Env) Valid() []error {
 
 type MainConfig struct {
 	Env         Env                    `json:"env"`
+	RabbitMqUrl string                 `json:"rabbitmq_url"`
 	Port        int                    `json:"port"`
 	Dsn         string                 `json:"dsn"`
 	JwtSecret   string                 `json:"jwt_secret"`
@@ -57,6 +58,9 @@ func (c *MainConfig) Valid() []error {
 	var errs []error
 	for _, err := range c.Env.Valid() {
 		errs = append(errs, common.ErrPath(err).Property("env"))
+	}
+	if c.RabbitMqUrl == "" {
+		errs = append(errs, common.ErrPath(errors.New("missing rabbitmq url")).Property("rabbitmq_url"))
 	}
 	if c.Port <= 0 {
 		errs = append(errs, common.ErrPath(errors.New("port has to be positive number")).Property("port"))

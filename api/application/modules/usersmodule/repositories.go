@@ -4,6 +4,7 @@ import (
 	"log"
 	"quizapi/common"
 	"quizapi/modules/modelmodule"
+	"quizapi/modules/wsmodule"
 
 	"gorm.io/gorm"
 )
@@ -76,4 +77,57 @@ func (repo *userRepository) Delete(c common.Ioc, id modelmodule.ModelId) error {
 		return common.ErrRepositoryNotFound
 	}
 	return nil
+}
+
+// user socket repo
+
+type UserSocketRepo interface {
+	GetAll(c common.Ioc) []UserSocket
+	GetByUser(c common.Ioc, userId modelmodule.ModelId) []UserSocket
+	GetBySocket(c common.Ioc, socketId wsmodule.SocketId) *UserSocket
+
+	DeleteSocket(c common.Ioc, socket UserSocket)
+	CreateSocket(c common.Ioc, socket UserSocket)
+}
+
+type socketRepoImpl struct{}
+
+func NewUserSocketRepository() UserSocketRepo {
+	return &socketRepoImpl{}
+}
+
+func (repo *socketRepoImpl) db(c common.Ioc) *gorm.DB {
+	var dbStorage common.ServiceStorage[*gorm.DB]
+	c.Inject(&dbStorage)
+	return dbStorage.MustGet()
+}
+
+func (repo *socketRepoImpl) GetAll(c common.Ioc) []UserSocket {
+	var userSockets []UserSocket
+	repo.db(c).Find(&userSockets)
+	return userSockets
+}
+
+func (repo *socketRepoImpl) GetByUser(c common.Ioc, userId modelmodule.ModelId) []UserSocket {
+	var sockets []UserSocket
+	repo.db(c).Where("user_id = ?", userId).Find(&sockets)
+	return sockets
+}
+
+func (repo *socketRepoImpl) GetBySocket(c common.Ioc, socketId wsmodule.SocketId) *UserSocket {
+	var socket UserSocket
+	if tx := repo.db(c).Where("socket_id = ?", socketId).First(&socket); tx.Error != nil {
+		return nil
+	}
+	return &socket
+}
+
+func (repo *socketRepoImpl) DeleteSocket(c common.Ioc, socket UserSocket) {
+	repo.db(c).Where("user_id = ? AND socket_id = ?", socket.UserId, socket.SocketId).Delete(&UserSocket{})
+}
+
+func (repo *socketRepoImpl) CreateSocket(c common.Ioc, socket UserSocket) {
+	if tx := repo.db(c).Create(&socket); tx.Error != nil {
+		log.Print(tx.Error.Error())
+	}
 }

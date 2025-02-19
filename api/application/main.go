@@ -6,6 +6,7 @@ import (
 	"os"
 	"quizapi/common"
 	"quizapi/modules/usersmodule"
+	"quizapi/modules/wsmodule"
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
@@ -65,14 +66,17 @@ func main() {
 	}
 
 	ioc := common.NewIocScope(func() common.Ioc { return common.IocContainer(c.Scope()) })
+	scope := ioc.Scope()
 	for _, pkg := range packages {
-		pkg.Variables(ioc.Scope())
+		pkg.Variables(scope)
 	}
 
 	r := router.New()
 	for _, pkg := range packages {
 		pkg.Endpoints(r, ioc)
 	}
+
+	wsmodule.HostApplication(ioc)
 
 	log.Printf("starting server on :%d", config.Port)
 	if err := fasthttp.ListenAndServe(fmt.Sprintf(":%d", config.Port), func(ctx *fasthttp.RequestCtx) {
