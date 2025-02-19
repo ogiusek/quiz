@@ -70,17 +70,13 @@ func (Package) Variables(c common.Ioc) {
 			db.Where("1 = 1").Delete(&UserSocket{})
 		}, c)
 	})
-
-	// var eventManager eventsmodule.EventManager
-	// c.Inject(&eventManager)
-
-	// for _, event := range events {
-	// 	eventManager.Reserve(event.Topic)
-	// }
-
-	// for topic, handler := range eventHandlers {
-	// 	eventManager.Listen(topic, handler)
-	// }
+	storage.OnClose(func(id wsmodule.SocketId) {
+		common.RunMiddlewares(middlewares, func(c common.Ioc) {
+			var db *gorm.DB
+			c.Inject(&db)
+			db.Where("socket_id = ?", id).Delete(&UserSocket{})
+		}, c)
+	})
 }
 
 func (Package) Endpoints(r *router.Router, c common.IocScope) {

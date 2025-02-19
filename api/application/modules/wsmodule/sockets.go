@@ -135,12 +135,14 @@ func (storage *socketStorageImpl) Listen() {
 			var body wshub.ConnectRequest
 			json.Unmarshal(message.Body, &body)
 			canConnect := storage.connect(SocketId(body.SocketId), body.Payload)
-			for _, listener := range storage.connectListeners {
-				listener(SocketId(body.SocketId))
-			}
 			connectResponse := wshub.NewConnectConfirmation(body.SocketId, canConnect)
 			resBody, _ := json.Marshal(connectResponse)
 			storage.channel.Publish(ExchangeWsConnectConfirmation, "", false, false, amqp.Publishing{Body: resBody})
+			if canConnect {
+				for _, listener := range storage.connectListeners {
+					listener(SocketId(body.SocketId))
+				}
+			}
 			message.Ack(false)
 		}
 	}()
