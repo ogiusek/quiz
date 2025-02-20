@@ -86,8 +86,9 @@ type UserSocketRepo interface {
 	GetByUser(c common.Ioc, userId modelmodule.ModelId) []UserSocket
 	GetBySocket(c common.Ioc, socketId wsmodule.SocketId) *UserSocket
 
-	DeleteSocket(c common.Ioc, socket UserSocket)
-	CreateSocket(c common.Ioc, socket UserSocket)
+	Delete(c common.Ioc, socket UserSocket)
+	DeleteBySocketId(c common.Ioc, id wsmodule.SocketId)
+	Create(c common.Ioc, socket UserSocket)
 }
 
 type socketRepoImpl struct{}
@@ -122,11 +123,15 @@ func (repo *socketRepoImpl) GetBySocket(c common.Ioc, socketId wsmodule.SocketId
 	return &socket
 }
 
-func (repo *socketRepoImpl) DeleteSocket(c common.Ioc, socket UserSocket) {
+func (repo *socketRepoImpl) Delete(c common.Ioc, socket UserSocket) {
 	repo.db(c).Where("user_id = ? AND socket_id = ?", socket.UserId, socket.SocketId).Delete(&UserSocket{})
 }
 
-func (repo *socketRepoImpl) CreateSocket(c common.Ioc, socket UserSocket) {
+func (repo *socketRepoImpl) DeleteBySocketId(c common.Ioc, id wsmodule.SocketId) {
+	repo.db(c).Where("socket_id = ?", id).Delete(&UserSocket{})
+}
+
+func (repo *socketRepoImpl) Create(c common.Ioc, socket UserSocket) {
 	if tx := repo.db(c).Create(&socket); tx.Error != nil {
 		log.Print(tx.Error.Error())
 	}

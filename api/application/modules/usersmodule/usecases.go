@@ -5,6 +5,7 @@ import (
 	"quizapi/common"
 	"quizapi/modules/filesmodule"
 	"quizapi/modules/modelmodule"
+	"quizapi/modules/wsmodule"
 )
 
 // register
@@ -14,6 +15,7 @@ import (
 // change name
 // change profile picture
 // change password
+// close connection
 
 // register
 
@@ -308,5 +310,18 @@ func (args *ChangePasswordArgs) Handle(c common.Ioc) error {
 		return common.ErrHttpParallelModification
 	}
 
+	return nil
+}
+
+// close connection
+
+type CloseConnectionArgs struct{}
+
+func (args *CloseConnectionArgs) Handle(c common.Ioc) error {
+	var storage common.ServiceStorage[wsmodule.SocketId]
+	c.Inject(&storage)
+	var repo UserSocketRepo
+	c.Inject(&repo)
+	repo.DeleteBySocketId(c, storage.MustGet())
 	return nil
 }
