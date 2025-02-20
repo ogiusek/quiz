@@ -3,6 +3,7 @@ package usersmodule
 import (
 	"quizapi/common"
 	"quizapi/modules/wsmodule"
+	"time"
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
@@ -72,9 +73,15 @@ func (Package) Variables(c common.Ioc) {
 	})
 	storage.OnClose(func(id wsmodule.SocketId) {
 		common.RunMiddlewares(middlewares, func(c common.Ioc) {
-			var db *gorm.DB
-			c.Inject(&db)
-			db.Where("socket_id = ?", id).Delete(&UserSocket{})
+			go func() {
+				// TODO find way to order listeners
+				// this is a temporary solution highly unstable
+				// in match module there is on close listener which should be executed first
+				time.Sleep(time.Millisecond)
+				var db *gorm.DB
+				c.Inject(&db)
+				db.Where("socket_id = ?", id).Delete(&UserSocket{})
+			}()
 		}, c)
 	})
 }
