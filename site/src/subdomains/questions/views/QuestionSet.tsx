@@ -179,7 +179,7 @@ export const QuestionSet = () => {
   // if you think why there are many components in one, answer is that they aren't used anywhere else so extraction is not necessary
   return <>
     <Nav />
-    <main style={{ maxWidth: "100vw" }} className="flex justify-center items-center h-screen p-2">
+    <main style={{ maxWidth: "100vw" }} className="flex justify-center items-center h-screen p-2 pt-12">
       <div className="bg-card text-card-foreground rounded-lg shadow-lg p-2 border w-full max-w-2xl h-full flex flex-col gap-4 overflow-y-auto">
         {loading && <>
           {/* loader */}

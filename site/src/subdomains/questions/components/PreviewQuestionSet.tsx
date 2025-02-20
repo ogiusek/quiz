@@ -30,7 +30,7 @@ export const PreviewQuestionSet = ({ id }: { id: string }) => {
   loading && RefreshQuestionSet()
 
   return <>
-    <main className="flex justify-center items-center w-screen h-screen p-2 fixed top-0 left-0 z-30 bg-background">
+    <main className="flex justify-center items-center w-screen h-screen p-2 pt-12 fixed top-0 left-0 z-30 bg-background">
       <div className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-2xl h-full flex flex-col gap-4 overflow-y-auto">
         {loading && <>
           {/* loader */}

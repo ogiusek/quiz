@@ -92,7 +92,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
 
   return <>
     <main className="flex justify-center items-center h-screen">
-      <div className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-3xl h-5/6 flex flex-col gap-4">
+      <div className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-3xl h-5/6 flex flex-col gap-4 overflow-y-auto">
         <h1 className="text-3xl">You're in match</h1>
 
         <div className={`transition fixed top-0 right-0 w-full max-w-sm h-full z-20 p-2 bg-card rounded-l-md border ${showPlayers ? '' : 'translate-x-full'}`}>

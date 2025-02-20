@@ -46,7 +46,7 @@ export const QuestionSetPicker = ({ onChoose: choose }: { onChoose: (_: Question
   const ref = useBottomScrollListener(onReachBottom)
 
   return <>
-    <main className="flex justify-center items-center w-screen h-screen p-2 fixed top-0 left-0 z-30 bg-background">
+    <main className="flex justify-center items-center w-screen h-screen p-2 pt-12 fixed top-0 left-0 z-30 bg-background">
       <div ref={ref as React.RefObject<HTMLDivElement> | undefined} className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border w-full max-w-2xl h-full flex flex-col gap-4 overflow-y-auto">
         <h1 className="text-3xl">Choose Set</h1>
         <form className="flex flex-row gap-2" onSubmit={(e) => {
