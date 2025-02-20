@@ -68,7 +68,7 @@ export default function Register() {
         </ShowErrors>
 
         <ShowErrors allErrors={errors} errors={errors}>
-          <Button aria-label="login link" className="w-full" type="submit" disabled={errors.length != 0}>Login</Button>
+          <Button aria-label="login link" className="w-full" type="submit" disabled={errors.length != 0}>Register</Button>
         </ShowErrors>
 
         <div className="flex flex-row justify-between">
