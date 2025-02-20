@@ -93,6 +93,7 @@ func (repo *matchRepositoryImpl) Delete(c common.Ioc, id modelmodule.ModelId) er
 // match course repository
 
 type MatchCourseRepository interface {
+	GetAll(common.Ioc) []MatchCourseModel
 	Create(common.Ioc, MatchCourseModel) error
 	Update(common.Ioc, MatchCourseModel) error
 	Delete(common.Ioc, modelmodule.ModelId) error
@@ -108,6 +109,12 @@ func (repo *matchCourseRepositoryImpl) db(c common.Ioc) *gorm.DB {
 	var dbStorage common.ServiceStorage[*gorm.DB]
 	c.Inject(&dbStorage)
 	return dbStorage.MustGet()
+}
+
+func (repo *matchCourseRepositoryImpl) GetAll(c common.Ioc) []MatchCourseModel {
+	var courses []MatchCourseModel
+	repo.db(c).Find(&courses)
+	return courses
 }
 
 func (repo *matchCourseRepositoryImpl) Create(c common.Ioc, model MatchCourseModel) error {

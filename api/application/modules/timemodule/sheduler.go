@@ -26,9 +26,14 @@ func (s *schedulerImpl) RunEnpoint(c common.Ioc, endpoint func(c common.Ioc)) {
 }
 
 func (s *schedulerImpl) Schedule(c common.Ioc, t time.Time, method func()) {
-	time.AfterFunc(time.Until(t), func() {
+	timeUntil := time.Until(t)
+	if timeUntil < 0 {
 		s.RunEnpoint(c, func(c common.Ioc) { method() })
-	})
+	} else {
+		time.AfterFunc(timeUntil, func() {
+			s.RunEnpoint(c, func(c common.Ioc) { method() })
+		})
+	}
 }
 
 func NewScheduler() Scheduler {

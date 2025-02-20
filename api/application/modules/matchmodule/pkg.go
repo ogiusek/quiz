@@ -3,7 +3,9 @@ package matchmodule
 import (
 	"quizapi/common"
 	"quizapi/modules/eventsmodule"
+	"quizapi/modules/timemodule"
 	"quizapi/modules/wsmodule"
+	"time"
 
 	"github.com/fasthttp/router"
 	"github.com/shelakel/go-ioc"
@@ -47,10 +49,11 @@ func (Package) Endpoints(r *router.Router, c common.IocScope) {
 	var socketsMessager wsmodule.SocketsMessager
 	c.Scope().Inject(&socketsMessager)
 
+	quit := wsmodule.WsEndpoint(c, (*QuitArgs)(nil))
 	socketsMessager.Listen("match/host", wsmodule.WsEndpoint(c, (*HostArgs)(nil)))
 	socketsMessager.Listen("match/active", wsmodule.WsEndpoint(c, (*ActiveGameArgs)(nil)))
 	socketsMessager.Listen("match/join", wsmodule.WsEndpoint(c, (*JoinArgs)(nil)))
-	socketsMessager.Listen("match/quit", wsmodule.WsEndpoint(c, (*QuitArgs)(nil)))
+	socketsMessager.Listen("match/quit", quit)
 	socketsMessager.Listen("match/change-question-set", wsmodule.WsEndpoint(c, (*ChangeQuestionSetArgs)(nil)))
 	socketsMessager.Listen("match/change-questions-amount", wsmodule.WsEndpoint(c, (*ChangeQuestionsAmountArgs)(nil)))
 	socketsMessager.Listen("match/start", wsmodule.WsEndpoint(c, (*StartArgs)(nil)))
@@ -58,8 +61,8 @@ func (Package) Endpoints(r *router.Router, c common.IocScope) {
 	socketsMessager.Listen("match/answer", wsmodule.WsEndpoint(c, (*AnswerArgs)(nil)))
 
 	var sockets wsmodule.SocketStorage
-	c.Scope().Inject(&sockets)
 	scope := c.Scope()
+	scope.Inject(&sockets)
 
 	var middlewares common.ServiceGroup[common.Middleware]
 	scope.Inject(&middlewares)
@@ -74,6 +77,21 @@ func (Package) Endpoints(r *router.Router, c common.IocScope) {
 	activeGame := wsmodule.WsEndpoint(c, (*ActiveGameArgs)(nil))
 	sockets.OnConnect(func(id wsmodule.SocketId) { activeGame(id, wsmodule.EmptyPayload) })
 
-	quit := wsmodule.WsEndpoint(c, (*QuitArgs)(nil))
 	sockets.OnClose(func(id wsmodule.SocketId) { quit(id, wsmodule.EmptyPayload) })
+
+	common.RunMiddlewares(middlewares.GetAll(), func(c common.Ioc) {
+		var repo MatchCourseRepository
+		c.Inject(&repo)
+		var scheduler timemodule.Scheduler
+		scope.Inject(&scheduler)
+		courses := repo.GetAll(c)
+		for _, course := range courses {
+			scheduler.Schedule(scope, time.Time(course.NextStep), func() {
+				args := SyncArgs{
+					MatchId: course.MatchId,
+				}
+				args.Handle(c)
+			})
+		}
+	}, c.Scope())
 }
