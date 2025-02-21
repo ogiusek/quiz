@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ApiDefinition } from "@/common/api/api";
 import { ShowErrors, ShowVoErrors } from "@/components/ui/errors";
 import { NotiesStorage, NotiesContext } from "@/common/noties/notiesContext";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Nav } from "@/common/nav/nav";
 
 const login = async (sessionContext: SessionStorage, api: ApiDefinition, noties: NotiesStorage, args: LogInArgs) => {
@@ -26,6 +26,7 @@ const login = async (sessionContext: SessionStorage, api: ApiDefinition, noties:
 }
 
 export default function Login() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const api = useContext(ApiContext)
   const sessionContext = useContext(SessionContext)
   const noties = useContext(NotiesContext)
@@ -69,7 +70,7 @@ export default function Login() {
         </ShowErrors>
 
         <div className="flex flex-row justify-between">
-          <Button aria-label="register link" asChild variant="link"><Link to="/user/register">register</Link></Button>
+          <Button aria-label="register link" asChild variant="link"><Link to={`/user/register?${window.location.href.split("?").filter((_, i) => i != 0).join("?")}`}>register</Link></Button>
           {/* <Button asChild variant="link"><Link to="/user/login">login</Link></Button> */}
         </div>
       </form>

@@ -73,7 +73,7 @@ export default function Register() {
 
         <div className="flex flex-row justify-between">
           {/* <Button asChild variant="link"><Link to="/user/register">register</Link></Button> */}
-          <Button aria-label="login link" asChild variant="link"><Link to="/user/login">login</Link></Button>
+          <Button aria-label="login link" asChild variant="link"><Link to={`/user/login?${window.location.href.split("?").filter((_, i) => i != 0).join("?")}`}>login</Link></Button>
         </div>
       </form>
     </main>
