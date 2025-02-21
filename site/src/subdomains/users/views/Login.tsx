@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ApiDefinition } from "@/common/api/api";
 import { ShowErrors, ShowVoErrors } from "@/components/ui/errors";
 import { NotiesStorage, NotiesContext } from "@/common/noties/notiesContext";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Nav } from "@/common/nav/nav";
 
 const login = async (sessionContext: SessionStorage, api: ApiDefinition, noties: NotiesStorage, args: LogInArgs) => {
@@ -26,7 +26,6 @@ const login = async (sessionContext: SessionStorage, api: ApiDefinition, noties:
 }
 
 export default function Login() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const api = useContext(ApiContext)
   const sessionContext = useContext(SessionContext)
   const noties = useContext(NotiesContext)
