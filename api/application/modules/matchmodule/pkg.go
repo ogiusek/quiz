@@ -1,6 +1,7 @@
 package matchmodule
 
 import (
+	"log"
 	"quizapi/common"
 	"quizapi/modules/eventsmodule"
 	"quizapi/modules/timemodule"
@@ -16,13 +17,15 @@ import (
 type Package struct{}
 
 func (Package) Db(db *gorm.DB) {
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&MatchModel{},
 		&MatchCourseModel{},
 		&AnsweredQuestionModel{},
 		&PlayerModel{},
 		&MatchCourseQuestionModel{},
-	)
+	); err != nil {
+		log.Panic(err)
+	}
 	db.SetupJoinTable(&MatchCourseModel{}, "Questions", &MatchCourseQuestionModel{})
 }
 
