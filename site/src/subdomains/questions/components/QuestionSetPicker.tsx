@@ -73,7 +73,10 @@ export const QuestionSetPicker = ({ onChoose: choose }: { onChoose: (_: Question
                 <h3 className="text-2xl">{set.Name.Value}</h3>
                 <UserAvatar user={set.Owner} />
               </div>
-              <p className="w-full text-left">{set.Description.Value}</p>
+              <div className="w-full flex-row justify-between">
+                <p className="text-left">{set.Description.Value}</p>
+                <p className="ml-3 text-right">Questions: {set.Questions.length}</p>
+              </div>
             </button>
           </li>)}
           {loading && <>

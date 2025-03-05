@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react"
-import { MatchDto } from "../models"
+import { MatchDto, PlayerDto } from "../models"
 import { SessionContext } from "@/subdomains/users/contexts/sessionContext"
 import { Button } from "@/components/ui/button"
 import { Contact, Copy, Eye, LogOut, Power, PowerOff, Save, Send, X } from "lucide-react"
@@ -13,24 +13,24 @@ import { UserAvatar } from "@/components/ui/avatar"
 import { AnswerInputs, AnswerOptions, AnswerType } from "@/subdomains/questions/valueobjects"
 import { LeaderboardContext } from "../contexts/leaderboard"
 
-const RenderOptionsAnswer = ({ answer, onAnswer }: { answer: AnswerOptions, onAnswer: (_: string) => void }) => {
+const RenderOptionsAnswer = ({ answer, player, onAnswer }: { answer: AnswerOptions, player: PlayerDto, onAnswer: (_: string) => void }) => {
   return <>
     <ul className="w-full h-full flex flex-row gap-2 flex-wrap">
       {answer.Answers.map((answer, i) => <li key={i} className=" w-2/5 flex-grow">
-        <Button aria-label="answer" className="w-full h-full" variant="outline" onClick={() => onAnswer(answer.Value)}>{answer.Value}</Button>
+        <Button aria-label="answer" disabled={!player.CanAnswer} className="w-full h-full" variant="outline" onClick={() => onAnswer(answer.Value)}>{answer.Value}</Button>
       </li>)}
     </ul>
   </>
 }
 
-const RenderInputsAnswer = ({ onAnswer }: { answer: AnswerInputs, onAnswer: (_: string) => void }) => {
+const RenderInputsAnswer = ({ player, onAnswer }: { answer: AnswerInputs, player: PlayerDto, onAnswer: (_: string) => void }) => {
   const [val, setVal] = useState<string>('')
   return <>
     <form className="w-full h-full flex flex-row gap-2" onSubmit={e => {
       e.preventDefault()
       val && onAnswer(val)
     }}>
-      <Input placeholder="answer" value={val} onChange={e => setVal(e.target.value)} />
+      <Input placeholder="answer" disabled={!player.CanAnswer} value={val} onChange={e => setVal(e.target.value)} />
       <Button aria-label="send" type="submit" disabled={!val}>
         <Send />
       </Button>
@@ -38,10 +38,10 @@ const RenderInputsAnswer = ({ onAnswer }: { answer: AnswerInputs, onAnswer: (_: 
   </>
 }
 
-const RenderAnswer = ({ type, answer, onAnswer }: { type: AnswerType, answer: AnswerInputs | AnswerOptions, onAnswer: (_: string) => void }) => {
+const RenderAnswer = ({ type, answer, player, onAnswer }: { type: AnswerType, answer: AnswerInputs | AnswerOptions, player: PlayerDto, onAnswer: (_: string) => void }) => {
   switch (type) {
-    case 'i': return <RenderInputsAnswer answer={answer as AnswerInputs} onAnswer={onAnswer} />
-    case 'o': return <RenderOptionsAnswer answer={answer as AnswerOptions} onAnswer={onAnswer} />
+    case 'i': return <RenderInputsAnswer answer={answer as AnswerInputs} player={player} onAnswer={onAnswer} />
+    case 'o': return <RenderOptionsAnswer answer={answer as AnswerOptions} player={player} onAnswer={onAnswer} />
   }
   throw new Error('not implemented this answer type')
 }
@@ -211,7 +211,10 @@ export const Play = ({ match }: { match: MatchDto }) => {
         </>}
 
         {match.State == 'playing' && match.Course && <>
-          <p className="w-full text-end">Question: {match.Course!.CurrentQuestionIndex + 1}/{match.QuestionsAmount}</p>
+          <div className="flex flex-row justify-between">
+            <CountTo key={match.Course.NextStep} date={new Date(match.Course.NextStep)} />
+            <p className="w-full text-end">Question: {match.Course!.CurrentQuestionIndex + 1}/{match.QuestionsAmount}</p>
+          </div>
 
 
           {match.Course.Step == 'question' && <>
@@ -219,6 +222,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
             <RenderAnswer
               type={match.Course!.CurrentQuestion!.AnswerType}
               answer={match.Course!.CurrentQuestion!.Answer}
+              player={match.Players.find(p => p.UserId == sessionContext.GetSession()?.Session()?.UserId)!}
               onAnswer={answer => {
                 wsContext.SendMessage({
                   topic: "match/answer",
@@ -231,7 +235,7 @@ export const Play = ({ match }: { match: MatchDto }) => {
 
           {match.Course.Step == 'break' && <>
             <p className="text-3xl text-center">
-              <CountTo date={new Date(match.Course.NextStep)} />
+              <CountTo key={match.Course.NextStep} date={new Date(match.Course.NextStep)} />
             </p>
 
             {match.Course.AnsweredQuestions.length !== 0 && (() => {

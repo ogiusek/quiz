@@ -1,6 +1,7 @@
 package usersmodule
 
 import (
+	"log"
 	"quizapi/common"
 	"quizapi/modules/wsmodule"
 
@@ -12,8 +13,9 @@ import (
 type Package struct{}
 
 func (Package) Db(db *gorm.DB) {
-	db.AutoMigrate(&UserModel{})
-	db.AutoMigrate(&UserSocket{})
+	if err := db.AutoMigrate(&UserModel{}, &UserSocket{}); err != nil {
+		log.Panic(err)
+	}
 }
 
 func (Package) Services(c *ioc.Container) {

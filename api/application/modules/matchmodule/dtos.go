@@ -150,20 +150,22 @@ func (model *AnsweredQuestionModel) Dto() AnsweredQuestionDto {
 
 type PlayerDto struct {
 	modelmodule.ModelDto
-	MatchId modelmodule.ModelId `json:"match_id"`
-	UserId  modelmodule.ModelId `json:"user_id"`
-	User    usersmodule.UserDto `json:"user"`
-	Online  bool                `json:"online"`
-	Score   int                 `json:"score"`
+	MatchId   modelmodule.ModelId `json:"match_id"`
+	UserId    modelmodule.ModelId `json:"user_id"`
+	User      usersmodule.UserDto `json:"user"`
+	Online    bool                `json:"online"`
+	CanAnswer bool                `json:"can_answer"`
+	Score     int                 `json:"score"`
 }
 
 func (model *PlayerModel) Dto() PlayerDto {
 	return PlayerDto{
-		ModelDto: model.Model.Dto(),
-		MatchId:  model.MatchId,
-		UserId:   model.UserId,
-		User:     model.User.Dto(),
-		Online:   model.Online,
-		Score:    model.Score,
+		ModelDto:  model.Model.Dto(),
+		MatchId:   model.MatchId,
+		UserId:    model.UserId,
+		User:      model.User.Dto(),
+		Online:    model.Online,
+		CanAnswer: model.CanAnswer,
+		Score:     model.Score,
 	}
 }

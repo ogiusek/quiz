@@ -84,6 +84,7 @@ export type PlayerDto = {
   UserId: string
   User: User
   Online: boolean
+  CanAnswer: boolean
   Score: number
 }
 
@@ -93,5 +94,6 @@ export const ToPlayerDto = (payload: any): PlayerDto => ({
   UserId: payload.user_id,
   User: ToUser(payload.user),
   Online: payload.online,
+  CanAnswer: payload.can_answer,
   Score: payload.score,
 })

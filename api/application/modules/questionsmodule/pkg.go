@@ -1,6 +1,7 @@
 package questionsmodule
 
 import (
+	"log"
 	"quizapi/common"
 
 	"github.com/fasthttp/router"
@@ -11,8 +12,9 @@ import (
 type Package struct{}
 
 func (Package) Db(db *gorm.DB) {
-	db.AutoMigrate(&QuestionModel{})
-	db.AutoMigrate(&QuestionSetModel{})
+	if err := db.AutoMigrate(&QuestionModel{}, &QuestionSetModel{}); err != nil {
+		log.Panic(err)
+	}
 }
 
 func (Package) Services(c *ioc.Container) {
