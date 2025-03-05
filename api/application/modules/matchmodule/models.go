@@ -68,6 +68,16 @@ func (match *MatchModel) onlinePlayers() []*PlayerModel {
 	return players
 }
 
+func (match *MatchModel) onlinePlayersWhichCanAnswer() []*PlayerModel {
+	var players []*PlayerModel
+	for _, player := range match.Players {
+		if player.CanAnswer && player.Online {
+			players = append(players, player)
+		}
+	}
+	return players
+}
+
 func (match *MatchModel) Join(c common.Ioc, user usersmodule.UserModel) error {
 	var eventManager eventsmodule.EventManager
 	c.Inject(&eventManager)
@@ -243,6 +253,7 @@ func (match *MatchModel) reset(c common.Ioc) {
 		}
 		if player.Score != 0 {
 			player.Score = 0
+			player.CanAnswer = true
 			players = append(players, player)
 			eventManager.Dispach(NewChangedPlayerEvent(c, *match, *player))
 			continue
@@ -276,14 +287,17 @@ type MatchCourseModel struct {
 
 var (
 	errNotQuestioning error = common.NewHttpError("this is not question time", 400)
+	errCannotAnswer   error = common.NewHttpError("you cannot answer after answering incorrectly ", 400)
 	errUserNotInMatch error = common.NewHttpError("user does not play in match", 404)
 )
 
 const ( // of course all of this can be later extracted this is made this way for now
-	scorePerCorrectQuestion   int           = 1000
-	scorePerIncorrectQuestion int           = -250
-	breakDuration             time.Duration = time.Second * 3
-	questionDuration          time.Duration = time.Second * 30
+	scorePerCorrectQuestion                              int           = 1000
+	additionalScorePerSecondOnCorrectQuestion            int           = 50
+	scorePerIncorrectQuestion                            int           = -250
+	additionalScorePerSecondBeforeEndOnIncorrectQuestion int           = -10
+	breakDuration                                        time.Duration = time.Second * 3
+	questionDuration                                     time.Duration = time.Second * 30
 )
 
 func (course *MatchCourseModel) changeStep(step MatchCourseStep, now time.Time, duration time.Duration) {
@@ -335,17 +349,26 @@ func (course *MatchCourseModel) Answer(c common.Ioc, match *MatchModel, userId m
 		return errUserNotInMatch
 	}
 
+	if !player.CanAnswer {
+		return errCannotAnswer
+	}
+
 	question := course.questions()[course.CurrentQuestion]
 	now := clock.Now()
 	answerTime := now.Sub(time.Time(course.LastStep))
+	timeLeftToAnswer := time.Time(course.LastStep).Add(questionDuration).Sub(now)
+	// log.Printf("\nthen: %s\n now: %s\nanswerTime: %ds\ntimeLeftToAnswer: %ds", time.Time(course.LastStep).String(), now.String(), int(answerTime.Seconds()), int(timeLeftToAnswer.Seconds()))
 	answered := NewAnsweredQuestion(c, course.Id, *question, userAnswer, AnswerTime(answerTime), AnsweredAt(clock.Now()), userId)
 	course.AnsweredQuestions = append(course.AnsweredQuestions, &answered)
 	eventManager.Dispach(NewCreatedAnsweredQuestionEvent(c, *match, answered))
 
 	if answered.AnsweredCorrectly {
-		player.Score += scorePerCorrectQuestion
+		additional := int(answerTime.Seconds() * float64(additionalScorePerSecondOnCorrectQuestion))
+		player.Score += scorePerCorrectQuestion + additional
 	} else {
-		player.Score += scorePerIncorrectQuestion
+		player.CanAnswer = false
+		additional := int(timeLeftToAnswer.Seconds() * float64(additionalScorePerSecondBeforeEndOnIncorrectQuestion))
+		player.Score += scorePerIncorrectQuestion + additional
 	}
 
 	eventManager.Dispach(NewChangedPlayerEvent(c, *match, *player))
@@ -374,8 +397,14 @@ func (course *MatchCourseModel) Sync(c common.Ioc, match *MatchModel) error {
 
 	switch course.Step {
 	case MatchCourseBreak:
-		course.changeStep(MatchCourseQuestion, now, questionDuration)
-		course.CurrentQuestion += 1
+		if len(match.onlinePlayersWhichCanAnswer()) == 0 {
+			var clock timemodule.Clock
+			c.Inject(&clock)
+			course.finish(clock)
+		} else {
+			course.changeStep(MatchCourseQuestion, now, questionDuration)
+			course.CurrentQuestion += 1
+		}
 		eventManager.Dispach(NewChangedMatchCourseEvent(c, *match, *course))
 		return nil
 	case MatchCourseQuestion:
@@ -477,21 +506,23 @@ func (AnsweredQuestionModel) TableName() string {
 
 type PlayerModel struct {
 	modelmodule.Model
-	MatchId modelmodule.ModelId    `gorm:"column:match_id;not null"`
-	UserId  modelmodule.ModelId    `gorm:"column:user_id;not null"`
-	User    *usersmodule.UserModel `gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
-	Online  bool                   `gorm:"column:online;type:boolean;not null"`
-	Score   int                    `gorm:"column:score;type:integer;not null"`
+	MatchId   modelmodule.ModelId    `gorm:"column:match_id;not null"`
+	UserId    modelmodule.ModelId    `gorm:"column:user_id;not null"`
+	User      *usersmodule.UserModel `gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
+	Online    bool                   `gorm:"column:online;type:boolean;not null"`
+	CanAnswer bool                   `gorm:"column:can_answer;type:boolean;not null"`
+	Score     int                    `gorm:"column:score;type:integer;not null"`
 }
 
 func NewPlayer(c common.Ioc, matchId modelmodule.ModelId, user usersmodule.UserModel) PlayerModel {
 	return PlayerModel{
-		Model:   modelmodule.NewModel(c),
-		MatchId: matchId,
-		UserId:  user.Id,
-		User:    &user,
-		Online:  true,
-		Score:   0,
+		Model:     modelmodule.NewModel(c),
+		MatchId:   matchId,
+		UserId:    user.Id,
+		User:      &user,
+		Online:    true,
+		CanAnswer: true,
+		Score:     0,
 	}
 }
 
