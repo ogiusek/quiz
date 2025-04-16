@@ -23,17 +23,17 @@ const RouterWrapper = memo(() => {
   return <Router>
     <Routes>
       {/* unauthorized */}
-      <Route path='/user/login' Component={UnAuthorized(Login, defaultAuthorizedEndpoint)} />
-      <Route path='/user/register' Component={UnAuthorized(Register, defaultAuthorizedEndpoint)} />
+      <Route path='/user/login' element={<UnAuthorized children={<Login />} defaultUrl={defaultAuthorizedEndpoint} />} />
+      <Route path='/user/register' element={<UnAuthorized children={<Register />} defaultUrl={defaultAuthorizedEndpoint} />} />
 
       {/*  authorized */}
-      <Route path='/user/profile' Component={Authorized(Profile, defaultUnAuthorizedEndpoint)} />
-      <Route path='/question-set/search' Component={Authorized(Search, defaultUnAuthorizedEndpoint)} />
-      <Route path='/question-set/my' Component={Authorized(MyQuestionSets, defaultUnAuthorizedEndpoint)} />
-      <Route path='/question-set/get/:id' Component={Authorized(QuestionSet, defaultUnAuthorizedEndpoint)} />
-      <Route path='/quiz/host' Component={Authorized(Host, defaultUnAuthorizedEndpoint)} />
-      <Route path='/quiz/join/:id' Component={Authorized(JoinId, defaultUnAuthorizedEndpoint)} />
-      <Route path='/quiz/join' Component={Authorized(Join, defaultUnAuthorizedEndpoint)} />
+      <Route path='/user/profile' element={<Authorized children={<Profile />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
+      <Route path='/question-set/search' element={<Authorized children={<Search />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
+      <Route path='/question-set/my' element={<Authorized children={<MyQuestionSets />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
+      <Route path='/question-set/get/:id' element={<Authorized children={<QuestionSet />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
+      <Route path='/quiz/host' element={<Authorized children={<Host />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
+      <Route path='/quiz/join/:id' element={<Authorized children={<JoinId />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
+      <Route path='/quiz/join' element={<Authorized children={<Join />} defaultUrl={defaultUnAuthorizedEndpoint} />} />
 
       {/* other */}
       <Route path='*' element={<>
